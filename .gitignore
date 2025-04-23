@@ -1,5 +1,6 @@
 cmake-build-debug
 db
 testcases
+.idea
 *.xml
 *.iml
