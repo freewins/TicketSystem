@@ -4,6 +4,7 @@
 
 #ifndef UTILS_HPP
 #define UTILS_HPP
+#include<vector>
 namespace utils {
   struct Time {
     int mon_, day_, hour_, minute_;

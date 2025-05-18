@@ -4,8 +4,8 @@
 
 #ifndef STATION_HPP
 #define STATION_HPP
-#include "BPlusTree.hpp"
-#include "utils.hpp"
+#include "../src/BPlusTree.hpp"
+#include "../src/utils.hpp"
 
 namespace train {
   //TODO Add the constructor

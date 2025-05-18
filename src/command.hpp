@@ -4,7 +4,7 @@
 
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
-#include <vector>
+#include "../src/vector.hpp"
 
 #include "../src/token.hpp"
 #include "../src/utils.hpp"
@@ -40,6 +40,8 @@ namespace command {
     }
     pos++;
     timestamp = utils::string_to_int(tokens[0]);
+
+    return true;
   }
 
 }

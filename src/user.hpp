@@ -5,7 +5,7 @@
 #ifndef USER_HPP
 #define USER_HPP
 #include <map> //TODO need to change?
-#include "BPlusTree.hpp"
+#include "../src/BPlusTree.hpp"
 
 namespace user {
   class User {
@@ -89,7 +89,7 @@ namespace user {
       return false;
     }
     bool find = false;
-    std::vector<Data> res_find = users.Search(user_name,find);
+    sjtu::vector<Data> res_find = users.Search(user_name,find);
     if (find) {
       if (strcmp(res_find[0].password,password) == 0) {
         login_stack.insert(std::make_pair(user_name,res_find[0].privilege));
@@ -117,7 +117,7 @@ namespace user {
       return false;
     }
     bool find = false;
-    std::vector<Data> res_find = users.Search(user_name,find);
+    sjtu::vector<Data> res_find = users.Search(user_name,find);
     if (find) {
       if (res_find[0].privilege <= res->second) {
         std::cout << username << " " << res_find[0].name<< " " << res_find[0].mailAddr << " " << res_find[0].privilege << "\n";
