@@ -62,7 +62,7 @@ namespace sjtu {
 
   public:
     /**
-     * TODO
+     * 
      * a type for actions of the elements of a vector, and you should write
      *   a class named const_iterator with same interfaces.
      */
@@ -94,7 +94,7 @@ namespace sjtu {
 
     private:
       /**
-       * TODO add data members
+       *  add data members
        *   just add whatever you want.
        */
       //friend class const_iterator;
@@ -111,36 +111,36 @@ namespace sjtu {
        * as well as operator-
        */
       iterator operator+(const int &n) const {
-        //TODO
+        
         return iterator(ptr + n);
       }
 
       iterator operator-(const int &n) const {
-        //TODO
+        
         return iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const iterator &rhs) const {
-        //TODO
+        
         return abs(ptr - rhs.ptr);
       }
 
       iterator &operator+=(const int &n) {
-        //TODO
+        
         this->ptr += n;
         return *this;
       }
 
       iterator &operator-=(const int &n) {
-        //TODO
+        
         this->ptr -= n;
         return *this;
       }
 
       /**
-       * TODO iter++
+       *  iter++
        */
       iterator operator++(int) {
         iterator tmp(*this);
@@ -150,7 +150,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO ++iter
+       *  ++iter
        */
       iterator &operator++() {
         this->ptr = this->ptr + 1;
@@ -158,7 +158,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO iter--
+       *  iter--
        */
       iterator operator--(int) {
         iterator tmp;
@@ -168,7 +168,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO --iter
+       *  --iter
        */
       iterator &operator--() {
         this->ptr = this->ptr - 1;
@@ -176,7 +176,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO *it
+       *  *it
        */
       T &operator*() const {
         return *ptr;
@@ -226,7 +226,7 @@ namespace sjtu {
 
     private:
       /**
-       * TODO add data members
+       *  add data members
        *   just add whatever you want.
        */
       //friend class const_iterator;
@@ -243,36 +243,36 @@ namespace sjtu {
        * as well as operator-
        */
       reverse_iterator operator+(const int &n) const {
-        //TODO
+        
         return iterator(ptr + n);
       }
 
       reverse_iterator operator-(const int &n) const {
-        //TODO
+        
         return iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const reverse_iterator &rhs) const {
-        //TODO
+        
         return abs(ptr - rhs.ptr);
       }
 
       reverse_iterator &operator+=(const int &n) {
-        //TODO
+        
         this->ptr += n;
         return *this;
       }
 
       reverse_iterator &operator-=(const int &n) {
-        //TODO
+        
         this->ptr -= n;
         return *this;
       }
 
       /**
-       * TODO iter++
+       *  iter++
        */
       reverse_iterator operator++(int) {
         iterator tmp(*this);
@@ -282,7 +282,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO ++iter
+       *  ++iter
        */
       reverse_iterator &operator++() {
         this->ptr = this->ptr - 1;
@@ -290,7 +290,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO iter--
+       *  iter--
        */
       iterator operator--(int) {
         iterator tmp;
@@ -300,7 +300,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO --iter
+       *  --iter
        */
       iterator &operator--() {
         this->ptr = this->ptr + 1;
@@ -308,7 +308,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO *it
+       *  *it
        */
       T &operator*() const {
         return *ptr;
@@ -338,7 +338,7 @@ namespace sjtu {
     };
 
     /**
-     * TODO
+     * 
      * has same function as iterator, just for a const object.
      */
     class const_iterator {
@@ -350,7 +350,7 @@ namespace sjtu {
       using iterator_category = std::output_iterator_tag;
 
     private:
-      /*TODO*/
+      /**/
       pointer ptr;
 
     public:
@@ -358,19 +358,19 @@ namespace sjtu {
       }
 
       const_iterator operator+(const int &n) const {
-        //TODO
+        
         return const_iterator(ptr + n);
       }
 
       const_iterator operator-(const int &n) const {
-        //TODO
+        
         return const_iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const const_iterator &rhs) const {
-        //TODO
+        
         return abs(ptr - rhs.ptr);
       }
 
@@ -397,7 +397,7 @@ namespace sjtu {
       }
 
       /**
-       * TODO *it
+       *  *it
        */
       const T &operator*() const {
         return *ptr;
@@ -427,7 +427,7 @@ namespace sjtu {
     };
 
     /**
-     * TODO Constructs
+     *  Constructs
      * At least two: default constructor, copy constructor
      */
     vector() {
@@ -445,7 +445,7 @@ namespace sjtu {
     }
 
     /**
-     * TODO Destructor
+     *  Destructor
      */
     ~vector() {
       for (int i = 0; i < _size; i++)
@@ -457,7 +457,7 @@ namespace sjtu {
     }
 
     /**
-     * TODO Assignment operator
+     *  Assignment operator
      */
     vector &operator=(const vector &other) {
       if (this->data == other.data) {

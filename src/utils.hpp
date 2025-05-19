@@ -4,8 +4,12 @@
 
 #ifndef UTILS_HPP
 #define UTILS_HPP
+#include <cstring>
+#include <regex>
 #include<vector>
 namespace utils {
+
+  const int mon[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
   struct Time {
     int mon_, day_, hour_, minute_;
     long long cmp;
@@ -20,6 +24,13 @@ namespace utils {
     Time(int mon, int day, int hour, int minute): mon_(mon), day_(day), hour_(hour), minute_(minute) {
       cmp = mon_ * 1e6 + day_ * 1e4 + hour_ * 1e2 + minute_;
     }
+    void swap(Time & a, Time & b) {
+      std::swap(a.mon_, b.mon_);
+      std::swap(a.day_, b.day_);
+      std::swap(a.hour_, b.hour_);
+      std::swap(a.minute_, b.minute_);
+      std::swap(a.cmp, b.cmp);
+    }
     Time & operator=(const Time &other) {
       mon_ = other.mon_;
       day_ = other.day_;
@@ -27,8 +38,63 @@ namespace utils {
       minute_ = other.minute_;
       return *this;
     }
+    //返回两个日期之间隔了几天 比如 7.1 - 6.30 = 1
+    int minus_mon(const Time & max_,const Time & min_) const{
+      Time ma,mb;
+      if (max_.cmp < min_.cmp) {
+        ma = min_;
+        mb = max_;
+      }
+      else {
+        ma = max_;
+        mb = min_;
+      }
+      if (ma.mon_ == mb.mon_) {
+        return ma.day_ - mb.day_;
+      }
+      int ans  = 0;
+      for (int i = mb.mon_ + 1; i < ma.mon_; i++) {
+        ans +=mon[i];
+      }
+      ans += mon[mb.mon_] - min_.day_;
+      ans += ma.day_ ;
+    }
+    Time& add_min(const int & time) {
+      this->minute_ += time;
+      while (this->minute_ >= 60) {
+        int h = this->minute_ / 60;
+        this->minute_ = this->minute_ % 60;
+        this->hour_ += h;
+      }
+      while (this -> hour_ >= 24) {
+        int d = this->hour_ / 24;
+        this->hour_ = this->hour_ % 24;
+        this->day_ += d;
+      }
+      while (this -> day_ >= mon[this->mon_]) {
+        this->day_ -= mon[this->mon_];
+        this->mon_++;
+      }
+      this->cmp = mon_ * 1e6 + day_ * 1e4 + hour_ * 1e2 + minute_;
+      return *this;
+    }
+
+
     bool operator<(const Time &rhs) const {
       return this->cmp < rhs.cmp;
+    }
+  };
+
+  //用于user 和 train 在修改队列后的信息交换
+  struct transfer_union {
+    char user_name[50];
+    int timestamp;
+    int status;
+
+    transfer_union(const char * username,int timestamp_,int status_) {
+      strcpy(user_name,username);
+      timestamp = timestamp_;
+      status = status_;
     }
   };
 
@@ -60,6 +126,7 @@ namespace utils {
     elems.push_back(s.substr(pre_pos, end_pos - pre_pos));
     return elems;
   }
+
   inline void split_int(int *des,const std::string& s, char delim) {
     std::vector<std::string> elems = split(s, delim);
     for (int i = 0; i < elems.size(); i++) {
@@ -81,5 +148,7 @@ namespace utils {
       return Time(mon,day,0,0);
     }
   }
+
+
 }
 #endif //UTILS_HPP

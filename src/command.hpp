@@ -16,8 +16,8 @@ namespace command {
     };
     int timestamp;
     token::TokenScanner token_scanner;
-    std::vector<std::string> tokens;
-    std::vector<std::string> params;
+    sjtu::vector<std::string> tokens;
+    sjtu::vector<std::string> params;
 
   public:
     Command();
@@ -27,6 +27,7 @@ namespace command {
   };
 
   inline Command::Command() {
+    timestamp = 0;
     tokens.clear();
   }
 
@@ -40,7 +41,6 @@ namespace command {
     }
     pos++;
     timestamp = utils::string_to_int(tokens[0]);
-
     return true;
   }
 

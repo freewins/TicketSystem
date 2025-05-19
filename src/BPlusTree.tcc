@@ -876,6 +876,10 @@ sjtu::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &
   }
   delete cur;
   delete cur_leaf_node;
+  if (find == false) {
+    //由于有对于0位置的读取，避免segment fault.
+    result.push_back(T());
+  }
   return result;
 }
 
