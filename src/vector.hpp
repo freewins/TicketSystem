@@ -12,37 +12,37 @@
 
 namespace sjtu {
   class exception {
-    protected:
-     const std::string variant = "";
-     std::string detail = "";
+  protected:
+    const std::string variant = "";
+    std::string detail = "";
 
-    public:
-     exception() {
-     }
-     exception(const exception &ec) : variant(ec.variant), detail(ec.detail) {
-     }
-     virtual std::string what() {
-         return variant + " " + detail;
-     }
- };
+  public:
+    exception() {
+    }
 
- class index_out_of_bound : public exception {
-     /* __________________________ */
- };
+    exception(const exception &ec) : variant(ec.variant), detail(ec.detail) {
+    }
 
- class runtime_error : public exception {
-     /* __________________________ */
- };
+    virtual std::string what() {
+      return variant + " " + detail;
+    }
+  };
 
- class invalid_iterator : public exception {
-     /* __________________________ */
- };
+  class index_out_of_bound : public exception {
+    /* __________________________ */
+  };
 
- class container_is_empty : public exception {
-     /* __________________________ */
- };
+  class runtime_error : public exception {
+    /* __________________________ */
+  };
 
+  class invalid_iterator : public exception {
+    /* __________________________ */
+  };
 
+  class container_is_empty : public exception {
+    /* __________________________ */
+  };
 
 
   /**
@@ -62,7 +62,7 @@ namespace sjtu {
 
   public:
     /**
-     * 
+     *
      * a type for actions of the elements of a vector, and you should write
      *   a class named const_iterator with same interfaces.
      */
@@ -101,8 +101,6 @@ namespace sjtu {
       pointer ptr;
 
     public:
-
-
       iterator(pointer ptr_) : ptr(ptr_) {
       }
 
@@ -111,30 +109,25 @@ namespace sjtu {
        * as well as operator-
        */
       iterator operator+(const int &n) const {
-        
         return iterator(ptr + n);
       }
 
       iterator operator-(const int &n) const {
-        
         return iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const iterator &rhs) const {
-        
         return abs(ptr - rhs.ptr);
       }
 
       iterator &operator+=(const int &n) {
-        
         this->ptr += n;
         return *this;
       }
 
       iterator &operator-=(const int &n) {
-        
         this->ptr -= n;
         return *this;
       }
@@ -203,6 +196,14 @@ namespace sjtu {
       bool operator!=(const const_iterator &rhs) const {
         return ptr != rhs.ptr;
       }
+
+      bool operator<(const iterator &rhs) const {
+        return ptr < rhs.ptr;
+      }
+
+      bool operator<(const const_iterator &rhs) const {
+        return ptr < rhs.ptr;
+      }
     };
 
     class reverse_iterator {
@@ -233,8 +234,6 @@ namespace sjtu {
       pointer ptr;
 
     public:
-
-
       reverse_iterator(pointer ptr_) : ptr(ptr_) {
       }
 
@@ -243,30 +242,25 @@ namespace sjtu {
        * as well as operator-
        */
       reverse_iterator operator+(const int &n) const {
-        
         return iterator(ptr + n);
       }
 
       reverse_iterator operator-(const int &n) const {
-        
         return iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const reverse_iterator &rhs) const {
-        
         return abs(ptr - rhs.ptr);
       }
 
       reverse_iterator &operator+=(const int &n) {
-        
         this->ptr += n;
         return *this;
       }
 
       reverse_iterator &operator-=(const int &n) {
-        
         this->ptr -= n;
         return *this;
       }
@@ -335,10 +329,12 @@ namespace sjtu {
       bool operator!=(const const_iterator &rhs) const {
         return ptr != rhs.ptr;
       }
+
+
     };
 
     /**
-     * 
+     *
      * has same function as iterator, just for a const object.
      */
     class const_iterator {
@@ -358,19 +354,16 @@ namespace sjtu {
       }
 
       const_iterator operator+(const int &n) const {
-        
         return const_iterator(ptr + n);
       }
 
       const_iterator operator-(const int &n) const {
-        
         return const_iterator(ptr - n);
       }
 
       // return the distance between two iterators,
       // if these two iterators point to different vectors, throw invaild_iterator.
       int operator-(const const_iterator &rhs) const {
-        
         return abs(ptr - rhs.ptr);
       }
 
@@ -423,6 +416,14 @@ namespace sjtu {
 
       bool operator!=(const const_iterator &rhs) const {
         return ptr != rhs.ptr;
+      }
+
+      bool operator<(const const_iterator &rhs) const {
+        return ptr < rhs.ptr;
+      }
+
+      bool operator<(const iterator &rhs) const {
+        return ptr < rhs.ptr;
       }
     };
 
@@ -533,9 +534,11 @@ namespace sjtu {
     reverse_iterator rbegin() {
       return reverse_iterator(data + _size - 1);
     }
+
     reverse_iterator rend() {
       return reverse_iterator(data - 1);
     }
+
     const_iterator cbegin() const {
       return const_iterator(data);
     }

@@ -20,6 +20,14 @@ namespace user {
         return strcmp(username, other.username) < 0;
       }
 
+      bool operator==(const UserName &other) const {
+        return strcmp(username, other.username) == 0;
+      }
+
+      bool operator!=(const UserName &other) const {
+        return strcmp(username, other.username) != 0;
+      }
+
       UserName() = default;
 
       UserName(const char *username_) {
@@ -35,6 +43,14 @@ namespace user {
 
       bool operator<(const value_user_ticket &other) const {
         return timestamp < other.timestamp;
+      }
+
+      bool operator==(const value_user_ticket &other) const {
+        return timestamp == other.timestamp ;
+      }
+
+      bool operator!=(const value_user_ticket &other) const {
+        return timestamp != other.timestamp ;
       }
     };
 
@@ -129,9 +145,9 @@ namespace user {
     int buy_ticket(train::Train &trains, const char *username, const char *TrainID, const char *startStation,
                    const char *endStation, int num, int timestamp, utils::Time date, bool queue);
 
-    bool query_order(const char * user_name) ;
+    bool query_order(const char *user_name);
 
-    bool refund_ticket(train::Train &trains, const char *username_,int k);
+    bool refund_ticket(train::Train &trains, const char *username_, int k);
 
     bool clean();
   };
@@ -277,7 +293,7 @@ namespace user {
       return false;
     }
     bool find = false;
-    sjtu::vector<value_user_ticket>  res = tickets_bpt.Search(user_name, find);
+    sjtu::vector<value_user_ticket> res = tickets_bpt.Search(user_name, find);
     if (find) {
       if (res.size() > k) {
         return false;
@@ -286,37 +302,33 @@ namespace user {
       UserTicket new_ticket;
       tickets_data.read(res[k - 1].pos, new_ticket);
       bool queue;
-      if (res[k-1].status == 0) {
+      if (res[k - 1].status == 0) {
         queue = true;
-      }
-      else {
+      } else {
         queue = false;
       }
-      if (trains.RefundTicket(username_,new_ticket.train_id,new_ticket.startStation,new_ticket.endStation,new_ticket.date,res[k - 1].timestamp,new_ticket.num,queue,change)) {
+      if (trains.RefundTicket(username_, new_ticket.train_id, new_ticket.startStation, new_ticket.endStation,
+                              new_ticket.date, res[k - 1].timestamp, new_ticket.num, queue, change)) {
         if (!change.empty()) {
-          for (auto t : change) {
-            auto item = tickets_bpt.Search(t.user_name,find);
+          for (int i = 0;i < change.size(); ++i) {
+            auto item = tickets_bpt.Search(change[i].user_name, find);
             if (find) {
-              for (auto e : item) {
-                if (e.timestamp == t.timestamp) {
-                  e.status = t.status;
-                  tickets_bpt.Update(t.user_name,e);
+              for (int j = 0; j < item.size(); ++j) {
+                if (item[j].timestamp == change[i].timestamp) {
+                  item[j].status = change[i].status;
+                  tickets_bpt.Update(change[i].user_name, item[j]);
                 }
               }
-            }
-            else {
+            } else {
               throw sjtu::runtime_error();
             }
           }
         }
         return true;
-      }
-      else {
+      } else {
         return false;
       }
-
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -327,13 +339,13 @@ namespace user {
     std::filesystem::path fPATH_TICKETS = "../db/user_tickets.bpt";
     std::filesystem::path fPATH_DATA_TICKETS = "../db/user_tickets.data";
     try {
-      if (std::filesystem::remove(fPATH) && std::filesystem::remove(fPATH_TICKETS) && std::filesystem::remove(fPATH_DATA_TICKETS)) {
+      if (std::filesystem::remove(fPATH) && std::filesystem::remove(fPATH_TICKETS) && std::filesystem::remove(
+            fPATH_DATA_TICKETS)) {
         return true;
-      }
-      else {
+      } else {
         return false;
       }
-    }catch (std::exception &e) {
+    } catch (std::exception &e) {
       std::cout << e.what() << std::endl;
     }
   }

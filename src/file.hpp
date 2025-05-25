@@ -21,7 +21,7 @@ namespace file {
 
     void read(long long pos, T &data);
 
-    void update(long long pos, T & data);
+    void update(long long pos, T &data);
 
     long long getPos();
 
@@ -37,7 +37,7 @@ namespace file {
   }
 
   template<class T>
-  void MyFile<T>::read(long long pos, T & data) {
+  void MyFile<T>::read(long long pos, T &data) {
     file.seekg(pos);
     file.read(reinterpret_cast<char *>(&data), sizeof(data));
   }
@@ -47,7 +47,7 @@ namespace file {
     file.seekg(0, std::ios::end);
     long long pos = file.tellp();
     file.seekp(pos);
-    file.write(reinterpret_cast<char *>(&data), sizeof(data));
+    file.write(reinterpret_cast<const char *>(&data), sizeof(data));
     return pos;
   }
 

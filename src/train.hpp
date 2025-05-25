@@ -4,6 +4,7 @@
 
 #ifndef STATION_HPP
 #define STATION_HPP
+#include <iostream>
 #include <file.hpp>
 
 #include "../src/BPlusTree.hpp"
@@ -97,12 +98,21 @@ namespace train {
         return start_time < t.start_time;
       }
 
+      bool operator==(const TrainInfoBasic &t) const {
+        return t.pos == pos;
+      }
+
+      bool operator!=(const TrainInfoBasic &t) const {
+        return t.pos != pos;
+      }
+
       TrainInfoBasic &operator=(const TrainInfoBasic &t) {
         is_release = t.is_release;
         seat_num = t.seat_num;
         start_time = t.start_time;
         end_time = t.end_time;
         pos = t.pos;
+        return *this;
       }
     };
 
@@ -111,9 +121,9 @@ namespace train {
       StationName station_names[MAX_TRAINS];
 
       int prices[MAX_TRAINS]{0};
-      int stopper_times[MAX_TRAINS]{0};
-      int travel_times[MAX_TRAINS]{0};
-
+      int times[MAX_TRAINS]{0}; // To store the time 前缀和
+      utils::Time arriving_time[MAX_TRAINS];
+      utils::Time leaving_time[MAX_TRAINS];
       int max_days = 0;
       //注意此处的值 left_seats[i][j]代表日期标号为 i 时,且当前火车编号为j,从j出发到j + 1站的座位数，0-based
       int left_seats[MAX_DAYS][MAX_TRAINS]{0};
@@ -122,6 +132,14 @@ namespace train {
       char type;
 
       TrainInfoMost() = default;
+    };
+
+    struct Info {
+      TrainId train_id;
+      int time;
+      int price;
+      int left_seat;
+      utils::Time from, to;
     };
 
     //用于排队队列的信息
@@ -144,6 +162,14 @@ namespace train {
           return time_num < t.time_num;
         }
       }
+
+      bool operator==(const queue_key &t) const {
+        return train_id == t.train_id;
+      }
+
+      bool operator!=(const queue_key &t) const {
+        return train_id != t.train_id;
+      }
     };
 
     struct queue_value {
@@ -162,6 +188,14 @@ namespace train {
 
       bool operator<(const queue_value &t) const {
         return time_stamp < t.time_stamp;
+      }
+
+      bool operator==(const queue_value &t) const {
+        return time_stamp == t.time_stamp;
+      }
+
+      bool operator!=(const queue_value &t) const {
+        return time_stamp != t.time_stamp;
       }
     };
 
@@ -197,6 +231,23 @@ namespace train {
       return;
     }
 
+  private:
+    static bool cmp_price(const Info &t1, const Info &t2) {
+      if (t1.price != t2.price) {
+        return t1.price < t2.price;
+      } else {
+        return t1.train_id < t2.train_id;
+      }
+    }
+
+    static bool cmp_time(const Info &t1, const Info &t2) {
+      if (t1.time != t2.time) {
+        return t1.time < t2.time;
+      } else {
+        return t1.train_id < t2.train_id;
+      }
+    }
+
   public:
     //TODO add a total information file
     Train(): stations(PATH_STATIONS), trains_basic(PATH_TRAINS_BASIC), trains_most(PATH_TRAINS_MOST),
@@ -218,7 +269,7 @@ namespace train {
     //-----User-----
     //用于QueryTicket 和 QueryTranfer 中的相同的query，返回从一个地方到另一个地方所有的train
 
-    sjtu::vector<TrainId> QueryBasic(StationName fStation, StationName tStation,bool & find);
+    sjtu::vector<TrainId> QueryBasic(StationName fStation, StationName tStation, bool &find);
 
     /**
      *
@@ -227,11 +278,13 @@ namespace train {
      * @param date 日期
      * @param mode 模式 0 默认为按照票价 1 为按照时间进行排序
      */
-    void QueryTicket(const char * fromStation,const char * toStation,utils::Time date,int mode = 0);
+    void QueryTicket(const char *fromStation, const char *toStation, utils::Time date, int mode = 0);
 
-    void QueryTrain();
+    //Query 后自行打印
+    bool QueryTrain(const char *TrainID, const utils::Time &date);
 
-    void QueryTransfer(const char * fromStation,const char * toStation,utils::Time date,int mode = 0);
+    //QUery 后自行打印
+    void QueryTransfer(const char *fromStation, const char *toStation, utils::Time date, int mode = 0);
 
     //这两个函数必须被user的函数调用，也就是说user中必须存在对应的函数
     /**
@@ -249,16 +302,16 @@ namespace train {
                   utils::Time &arriving_time, int &price);
 
     /**
-     * 
-     * @param username_ 
-     * @param trainID_ 
-     * @param startStation_ 
-     * @param endStation_ 
-     * @param date_ 
-     * @param timestamp 
-     * @param num 
-     * @param queue_ 
-     * @return 
+     *
+     * @param username_
+     * @param trainID_
+     * @param startStation_
+     * @param endStation_
+     * @param date_
+     * @param timestamp
+     * @param num
+     * @param queue_
+     * @return
      */
     bool RefundTicket(const char *username_, const char *trainID_, const char *startStation_, const char *endStation_,
                       const utils::Time &date_, int timestamp, int num, bool queue_,
@@ -300,15 +353,32 @@ namespace train {
         train_info_most.station_names[i] = stations_vector[i];
       }
       //车票价格
+      train_info_most.prices[0] = 0;
       utils::split_int(train_info_most.prices, prices_, '|');
       for (int i = 1; i <= stationNum_; i++) {
         train_info_most.prices[i] += train_info_most.prices[i - 1];
       }
+      int *travel = new int[stationNum_];
+      int *stopover = new int[stationNum_];
       //路程时间
-      utils::split_int(train_info_most.stopper_times, stopoverTimes_, '|');
+      utils::split_int(travel, travelTimes_, '|');
       //经停时间
       if (stationNum_ > 2) {
-        utils::split_int(train_info_most.stopper_times, stopoverTimes_, '|');
+        utils::split_int(stopover, stopoverTimes_, '|');
+      }
+      train_info_most.arriving_time[0] = utils::Time();
+      train_info_most.leaving_time[0] = train_info_most.start_time;
+      train_info_most.times[0] = 0;
+      for (int i = 1; i < stationNum_; i++) {
+        train_info_most.times[i] += train_info_most.times[i - 1] + travel[i - 1];
+        if (stationNum_ > 2 && i > 1) {
+          train_info_most.times[i] += stopover[i - 2];
+        }
+        train_info_most.arriving_time[i] = train_info_most.arriving_time[i - 1].add_min(train_info_most.times[i]);
+        if (stationNum_ > 2 && i >= 1 && i < stationNum_ - 1) {
+          train_info_most.leaving_time[i] = train_info_most.arriving_time[i];
+          train_info_most.leaving_time[i].add_min(stopover[i - 1]);
+        }
       }
       //这里要进行 + 1,因为得到是间隔而非总数
       train_info_most.max_days = train_info_basic.start_time.minus_mon(train_info_basic.end_time,
@@ -349,14 +419,12 @@ namespace train {
     TrainId trainID(trainID_);
     bool find = false;
     TrainInfoBasic info_basic(trains_basic.Search(trainID, find)[0]);
-    //TODO 如果没有找到 -> optional
     if (find) {
       if (!info_basic.is_release) {
-        //TODO 思考是否需要进行删除
         TrainInfoMost train_info_most;
         trains_most.read(info_basic.pos, train_info_most);
-        for (auto t: train_info_most.station_names) {
-          stations.Remove(t, trainID);
+        for (int j = 0; j < train_info_most.station_num; j++) {
+          stations.Remove(train_info_most.station_names[j], trainID);
         }
         trains_basic.Remove(trainID, info_basic);
         return true;
@@ -365,25 +433,23 @@ namespace train {
     return false;
   }
 
-  inline sjtu::vector<Train::TrainId> Train::QueryBasic(StationName fStation, StationName tStation,bool & find) {
+  inline sjtu::vector<Train::TrainId> Train::QueryBasic(StationName fStation, StationName tStation, bool &find) {
     sjtu::vector<Train::TrainId> res;
     sjtu::vector<Train::TrainId> fTrains;
     sjtu::vector<Train::TrainId> tTrains;
 
     find = false;
-    fTrains = stations.Search(fStation,find);
+    fTrains = stations.Search(fStation, find);
     if (find) {
-      tTrains = stations.Search(tStation,find);
+      tTrains = stations.Search(tStation, find);
       if (find) {
         int i = 0, j = 0;
         while (i < fTrains.size() && j < tTrains.size()) {
           if (fTrains[i] == tTrains[j]) {
             res.push_back(fTrains[i]);
-          }
-          else if (fTrains[j] < tTrains[i]) {
+          } else if (fTrains[j] < tTrains[i]) {
             j++;
-          }
-          else {
+          } else {
             i++;
           }
         }
@@ -391,6 +457,39 @@ namespace train {
     }
     return res;
   }
+
+  inline bool Train::QueryTrain(const char *TrainID, const utils::Time &date) {
+    TrainId trainID(TrainID);
+    bool find = false;
+    auto basic_info = trains_basic.Search(trainID, find);
+    if (find) {
+      if (basic_info[0].end_time.cmp >= date.cmp && basic_info[0].start_time.cmp <= date.cmp) {
+        TrainInfoMost train_info_most;
+        trains_most.read(basic_info[0].pos, train_info_most);
+        int date_num = date.minus_mon(basic_info[0].start_time, date);
+        std::cout << trainID.train_id << " " << train_info_most.type << std::endl;
+        for (int i = 0; i < train_info_most.station_num; i++) {
+          std::cout << train_info_most.station_names[i].train_name << " ";
+          if (i == 0) {
+            std::cout << "xx-xx xx:xx";
+          } else {
+            std::cout << train_info_most.arriving_time[i];
+          }
+          std::cout << " -> ";
+          if (i == train_info_most.station_num - 1) {
+            std::cout << "xx-xx xx:xx ";
+            std::cout << train_info_most.prices[i] << " x\n";
+          } else {
+            std::cout << train_info_most.leaving_time[i] << " ";
+            std::cout << train_info_most.prices[i] << " " << train_info_most.left_seats[date_num][i] << "\n";
+          }
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
 
   inline void Train::QueryTicket(const char *fromStation, const char *toStation, utils::Time date, int mode) {
     StationName fStation(fromStation);
@@ -400,42 +499,208 @@ namespace train {
     sjtu::vector<long long> pos_vector;
     path = this->QueryBasic(fStation, tStation, find);
     if (find) {
-      for (auto t: path) {
+      for (int i = 0; i < path.size(); i++) {
         bool find_ = false;
-        TrainInfoBasic info(trains_basic.Search(t,find_)[0]);
-         if (info.start_time.cmp <= date.cmp && info.end_time.cmp >= date.cmp) {
-           pos_vector.push_back(info.pos);
-         }
+        TrainInfoBasic info(trains_basic.Search(path[i], find_)[0]);
+        if (info.start_time.cmp <= date.cmp && info.end_time.cmp >= date.cmp) {
+          pos_vector.push_back(info.pos);
+        }
       }
+      TrainInfoMost train_info_most;
+
+      sjtu::vector<Info> infos;
+      for (int i = 0; i < pos_vector.size(); i++) {
+        trains_most.read(pos_vector[i], train_info_most);
+        int start_pos, end_pos;
+        get_station_pos(train_info_most.station_names, train_info_most.station_num, fStation, tStation, start_pos,
+                        end_pos);
+        int date_num = date.minus_mon(train_info_most.start_time, date);
+        Info new_info;
+        new_info.from = train_info_most.leaving_time[start_pos];
+        new_info.to = train_info_most.arriving_time[end_pos];
+        new_info.time = train_info_most.prices[end_pos] - train_info_most.prices[start_pos];
+        new_info.price = train_info_most.prices[end_pos] - train_info_most.prices[start_pos];
+        new_info.train_id = path[i];
+        infos.push_back(new_info);
+        //TODO 添加一个获取可以预定座位的函数
+        new_info.left_seat = 1e5 + 10; //设置成最大值
+        for (int i = start_pos; i < end_pos; i++) {
+          new_info.left_seat = std::min(new_info.left_seat, train_info_most.left_seats[date_num][i]);
+        }
+      }
+
+      if (mode) {
+        std::sort(infos.begin(), infos.end(), cmp_time);
+      } else {
+        std::sort(infos.begin(), infos.end(), cmp_price);
+      }
+      std::cout << infos.size() << "\n";
+      for (int k = 0; k < infos.size(); k++) {
+        std::cout << infos[k].train_id.train_id << " " << fromStation << " " << infos[k].from << " -> " << toStation <<
+            " " << infos[k].to <<
+            " " << infos[k].price << " " << infos[k].left_seat << "\n";
+      }
+    } else {
+      std::cout << "0\n";
     }
-    TrainInfoMost train_info_most;
-    int ans = 0x3f3f3f3f;
-    for (auto t : pos_vector) {
-      trains_most.read(t, train_info_most);
-      int start_pos,end_pos;
-      get_station_pos(train_info_most.station_names,train_info_most.station_num,fStation,tStation,start_pos,end_pos);
-      if (mode) {//time
-        //TODO 添加时间函数
-      }
-      else {//price
-        ans = std::min(ans, train_info_most.prices[end_pos] - train_info_most.prices[start_pos]);
-      }
-    }
-    return ;
+    return;
   }
-  //TODO
+
   inline void Train::QueryTransfer(const char *fromStation, const char *toStation, utils::Time date, int mode) {
     StationName fStation(fromStation);
     StationName tStation(toStation);
     //Step 1: 获得所有的 从fStation出发的点 ，然后获得在date内能到达的Stations
-    //Step 2:
-    //Step 2: 对于这些Station，再求从这些Station
+    //Step 2: 对于这些Station，再求从这些Station 能否到达to Station 的trainID
+    //Step 3: 如果可以到达，注意到达的时间，首先看leaving_time 如果leaving time并不满足，就增加一天 这个也要注意发行时间
+    bool find = false;
+    sjtu::vector<TrainId> trainIDs = stations.Search(fStation, find);
+    sjtu::vector<int> hash; //建立一个从pos -> train ID 的hash
+    sjtu::vector<long long> pos_vector;
+    if (find) {
+      for (int i = 0; i < trainIDs.size(); i++) {
+        bool find_ = false;
+        auto trains_res = trains_basic.Search(trainIDs[i], find_);
+        if (find_) {
+          //TODO 改成最后的运营结束时间
+          if (trains_res[0].start_time.cmp <= date.cmp && trains_res[0].end_time.cmp >= date.cmp) {
+            pos_vector.push_back(trains_res[0].pos);
+            hash.push_back(i);
+          }
+        }
+      }
+      if (!pos_vector.empty()) {
+        TrainInfoMost train_info_most;
+        sjtu::vector<StationName> midStations;
+        sjtu::vector<int> train_ids; // TO get the train id -> trainID[hash[train_ids[i]]]]
+        sjtu::vector<int> to_value;
+        bool add_ = false;
+        int fpos = 0;
+        for (int i = 0; i < pos_vector.size(); i++) {
+          trains_most.read(pos_vector[i], train_info_most);
+          add_ = false;
+
+          if (train_info_most.station_names[train_info_most.station_num - 1] == fStation) {
+            continue;
+          }
+          for (int k = 0; k < train_info_most.station_num; k++) {
+            if (train_info_most.station_names[k] == fStation) {
+              add_ = true;
+              fpos = k;
+              continue;
+            }
+            if (add_) {
+              midStations.push_back(train_info_most.station_names[k]);
+              train_ids.push_back(i);
+              if (mode == 0)to_value.push_back(train_info_most.prices[k] - train_info_most.prices[fpos]); //
+              else to_value.push_back(train_info_most.times[k] - train_info_most.times[fpos]); //
+            }
+          }
+        }
+        //step 3:
+        if (!midStations.empty()) {
+          sjtu::vector<int> to_values;
+          sjtu::vector<TrainId> to_train_ids; //存储第二趟车的trainID
+          Info info1, info2;
+          StationName mid; //中转站
+          const long long INF = 0x3f3f3f3f3f;
+          long long ans = INF;
+          for (int i = 0; i < midStations.size(); i++) {
+            bool find_ = false;
+            auto mid_trains = QueryBasic(midStations[i], tStation, find);
+            auto mid_train_ids = trainIDs[hash[train_ids[i]]]; //第一班车的trainID
+            if (find) {
+              for (int j = 0; j < mid_trains.size(); j++) {
+                if (mid_trains[j] == mid_train_ids) {
+                  //说明是统一趟车
+                  continue;
+                } else {
+                  bool find_to_train = false;
+                  auto res = trains_basic.Search(mid_trains[j], find_to_train);
+                  if (res[0].start_time.cmp <= date.cmp && res[0].end_time.cmp >= date.cmp) {
+                    TrainInfoMost train_info_most_;
+                    trains_most.read(res[0].pos, train_info_most_);
+                    int start_pos, end_pos;
+                    get_station_pos(train_info_most.station_names, train_info_most_.station_num, midStations[i],
+                                    tStation, start_pos, end_pos);
+                    if (start_pos <= end_pos) {
+                      int date_num = date.minus_mon(date, res[0].start_time);
+                      bool update_min = false;
+                      int tmp;
+                      if (mode) {
+                        // mode = 1 time
+                        int tmp = to_values[i] + train_info_most_.times[end_pos] - train_info_most_.times[start_pos];
+                        if (tmp < ans) {
+                          update_min = true;
+                        } else if (tmp == ans) {
+                          if (mid_train_ids < info1.train_id) {
+                            update_min = true;
+                          } else if (mid_train_ids == info1.train_id && mid_trains[j] < info2.train_id) {
+                            update_min = true;
+                          }
+                        }
+                      } else {
+                        int tmp = to_values[i] + train_info_most_.prices[end_pos] - train_info_most_.prices[start_pos];
+                        if (tmp < ans) {
+                          update_min = true;
+                        } else if (tmp == ans) {
+                          if (mid_train_ids < info1.train_id) {
+                            update_min = true;
+                          } else if (mid_train_ids == info1.train_id && mid_trains[j] < info2.train_id) {
+                            update_min = true;
+                          }
+                        }
+                      }
+                      if (update_min) {
+                        ans = tmp;
+                        mid = midStations[i];
+                        info1.train_id = mid_train_ids;
+                        info2.train_id = mid_trains[j];
+                        info2.price = train_info_most.prices[end_pos] - train_info_most.prices[start_pos];
+                        info2.from = train_info_most.leaving_time[start_pos];
+                        info2.to = train_info_most.arriving_time[end_pos];
+                        info2.left_seat = res[0].seat_num;
+                        for (int i = start_pos; i < end_pos; i++) {
+                          info2.left_seat = std::min(info2.left_seat, train_info_most.left_seats[date_num][i]);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (ans != INF) {
+            bool find_train = false;
+            auto res = trains_basic.Search(info1.train_id, find_train);
+            if (find_train) {
+              trains_most.read(res[0].pos, train_info_most);
+              int start_pos, end_pos;
+              get_station_pos(train_info_most.station_names, train_info_most.station_num, fStation, mid, start_pos,
+                              end_pos);
+              info1.from = train_info_most.leaving_time[start_pos];
+              info1.to = train_info_most.arriving_time[end_pos];
+              info1.left_seat = res[0].seat_num;
+              int date_num = date.minus_mon(date, train_info_most.start_time);
+              for (int i = start_pos; i < end_pos; i++) {
+                info1.left_seat = std::min(info1.left_seat,train_info_most.left_seats[date_num][i]);
+              }
+              info1.price = train_info_most.prices[end_pos] - train_info_most.prices[start_pos];
+            }
+            std::cout << info1.train_id.train_id << " " << fromStation << " " << info1.from << " -> " << mid.train_name <<
+            " " << info1.to <<
+            " " << info1.price << " " << info1.left_seat << "\n";
+            std::cout << info2.train_id.train_id << " " << mid.train_name << " " << info2.from << " -> " << toStation <<
+            " " << info2.to <<
+            " " << info2.price << " " << info2.left_seat << "\n";
+            return;
+          }
+        }
+      }
+    }
+    std::cout << "0\n";
   }
 
 
-
-
-  //TODO 添加开始和结束时间
   inline int Train::BuyTicket(const char *username_, const char *trainID_, const char *startStation_,
                               const char *endStation_,
                               const utils::Time &date_, int num, bool queue_, int timestamp, utils::Time &leaving_time,
@@ -444,18 +709,15 @@ namespace train {
     StationName start_station(startStation_);
     StationName end_station(endStation_);
     TrainInfoBasic basic;
-    int price = 0;
     bool find = false;
     basic = trains_basic.Search(trainID, find)[0];
     if (find) {
-      //TODO  封装到一个check函数里面
       if (basic.is_release && num <= basic.seat_num && basic.start_time.cmp <= date_.cmp && date_.cmp <= basic.end_time.
           cmp) {
         TrainInfoMost train_info_most;
         trains_most.read(basic.pos, train_info_most);
         int pos_start_station = -1, pos_end_station = -1;
         int permit_nums = basic.seat_num + 1;
-        //TODO 是否需要封装成一个函数，找到对应的始发和终点站
         this->get_station_pos(train_info_most.station_names, train_info_most.station_num, start_station, end_station,
                               pos_start_station, pos_end_station);
         if (pos_start_station >= 0 && pos_end_station >= 0 && pos_start_station < pos_end_station) {
@@ -487,6 +749,9 @@ namespace train {
             for (int i = pos_start_station; i < pos_end_station; i++) {
               train_info_most.left_seats[num_date][i] -= num;
             }
+            price = train_info_most.prices[pos_end_station] - train_info_most.prices[pos_start_station];
+            leaving_time = train_info_most.leaving_time[pos_start_station];
+            arriving_time = train_info_most.arriving_time[pos_end_station];
             trains_most.update(basic.pos, train_info_most);
             return 1;
           }
@@ -530,21 +795,21 @@ namespace train {
         sjtu::vector<queue_value> res = queues.Search({trainID, timenum}, find);
         if (find) {
           //确定有队列的等待
-          for (auto t: res) {
+          for (int s = 0; s < res.size(); s++) {
             bool change_ = true;
-            for (int i = t.start_pos; i < t.end_pos; i++) {
-              if (train_info_most.left_seats[timenum][i] < t.reversed_seats_num) {
+            for (int i = res[s].start_pos; i < res[s].end_pos; i++) {
+              if (train_info_most.left_seats[timenum][i] < res[s].reversed_seats_num) {
                 change_ = false;
                 break;
               }
             }
             if (change_) {
               //说明可以进行修改
-              queues.Remove({trainID, timenum}, t);
-              for (int i = t.start_pos; i < t.end_pos; i++) {
-                train_info_most.left_seats[timenum][i] -= t.reversed_seats_num;
+              queues.Remove({trainID, timenum}, res[s]);
+              for (int i = res[s].start_pos; i < res[s].end_pos; i++) {
+                train_info_most.left_seats[timenum][i] -= res[s].reversed_seats_num;
               }
-              change.push_back(utils::transfer_union(username_, t.time_stamp, 0));
+              change.push_back(utils::transfer_union(username_, res[s].time_stamp, 0));
             }
           }
           trains_most.update(info_basic.pos, train_info_most);
@@ -564,15 +829,13 @@ namespace train {
       if (std::filesystem::remove(f_path_stations) && std::filesystem::exists(f_path_trains_basic) &&
           std::filesystem::exists(f_path_trains_most) && std::filesystem::exists(path_queue)) {
         return true;
-          }
-      else {
+      } else {
         return false;
       }
     } catch (std::filesystem::filesystem_error &e) {
       std::cout << e.what() << std::endl;
     }
   }
-
 }
 
 #endif //STATION_HPP

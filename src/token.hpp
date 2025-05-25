@@ -10,14 +10,18 @@ namespace token {
   private:
     int current = 0;
     std::string token;
+
   public :
     TokenScanner();
-    explicit TokenScanner(std::string && input);
-    void reset_token(std::string && input);
+
+    explicit TokenScanner(std::string &&input);
+
+    void reset_token(std::string &&input);
+
     bool has_more_token();
+
     std::string next_token();
   };
-
 
 
   inline TokenScanner::TokenScanner() {
@@ -28,18 +32,16 @@ namespace token {
     current = 0;
     token = input;
     if (token[current] == '[') {
-      current ++;
+      current++;
     }
-
   }
 
   inline void TokenScanner::reset_token(std::string &&input) {
     current = 0;
     token = input;
     if (token[current] == '[') {
-      current ++;
+      current++;
     }
-
   }
 
   inline bool TokenScanner::has_more_token() {
@@ -56,19 +58,15 @@ namespace token {
       }
     }
     if (token[current - 1] == ']') {
-      result = token.substr(pre, current - pre -1);
+      result = token.substr(pre, current - pre - 1);
       current++;
-    }
-    else {
+    } else {
       result = token.substr(pre, current - pre);
       current++;
     }
 
     return result;
   }
-
-
-
 }
 
 #endif //TOKEN_HPP

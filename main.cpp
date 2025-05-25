@@ -1,10 +1,6 @@
 #include<iostream>
 #include<string>
 #include "./src/command.hpp"
-#include "./src/token.hpp"
-#include"./src/user.hpp"
-#include "./src/train.hpp"
-#include "./src/utils.hpp"
 int main() {
   std::string input;
   bool flag = true;
