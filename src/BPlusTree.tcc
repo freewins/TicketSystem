@@ -879,7 +879,7 @@ std::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &k
   delete cur;
   delete cur_leaf_node;
   if (result.size() > 0) {
-    result.reverse();
+    std::reverse(result.begin(), result.end());
   }
 
   return result;
