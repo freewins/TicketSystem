@@ -1,13 +1,17 @@
 #include<iostream>
 #include<string>
 #include "./src/command.hpp"
+
 int main() {
   std::string input;
-  bool flag = true;
+  bool exit_flag = false;
   command::Command command_;
-  while (flag) {
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(nullptr);
+  std::cout.tie(nullptr);
+  while (!exit_flag) {
     getline(std::cin, input);
-    flag = command_.execute(std::move(input));
+    command_.execute(std::move(input),exit_flag);
   }
   return 0;
 }

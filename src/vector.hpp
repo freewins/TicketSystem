@@ -5,44 +5,13 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
+#include <algorithm>
 #include <climits>
 #include <cstddef>
 #include <stdexcept>
 #include <memory>
-
-namespace sjtu {
-  class exception {
-  protected:
-    const std::string variant = "";
-    std::string detail = "";
-
-  public:
-    exception() {
-    }
-
-    exception(const exception &ec) : variant(ec.variant), detail(ec.detail) {
-    }
-
-    virtual std::string what() {
-      return variant + " " + detail;
-    }
-  };
-
-  class index_out_of_bound : public exception {
-    /* __________________________ */
-  };
-
-  class runtime_error : public exception {
-    /* __________________________ */
-  };
-
-  class invalid_iterator : public exception {
-    /* __________________________ */
-  };
-
-  class container_is_empty : public exception {
-    /* __________________________ */
-  };
+#include "exceptions.hpp"
+namespace sjtu{
 
 
   /**
@@ -671,6 +640,20 @@ namespace sjtu {
       _size--;
       Traits::destroy(alloc, data + _size);
       return iterator(data + ind + 1);
+    }
+
+    vector & reverse() {
+      T* start = this-> data;
+      T* end = this-> data + _size - 1;
+      while (start != end) {
+        std::swap((*start), (*end));
+        ++start;
+        --end;
+        if(end < start){
+          break;
+        }
+      }
+      return *this;
     }
 
     /**

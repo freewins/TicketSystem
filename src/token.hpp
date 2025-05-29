@@ -53,7 +53,6 @@ namespace token {
     int pre = current;
     for (; current < token.size(); ++current) {
       if (token[current] == ' ') {
-        current;
         break;
       }
     }
@@ -64,7 +63,6 @@ namespace token {
       result = token.substr(pre, current - pre);
       current++;
     }
-
     return result;
   }
 }

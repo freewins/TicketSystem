@@ -6,22 +6,24 @@
 #ifndef PAIR_HPP
 #define PAIR_HPP
 namespace sjtu{
-  template <typename T1,typename T2>
-class pair{
+  template<class T1, class T2>
+  class pair {
   public:
     T1 first;
     T2 second;
-  public:
-    pair(){}
+    constexpr pair() : first(), second() {}
+    pair(const pair &other) = default;
+    pair(pair &&other) = default;
+    pair(const T1 &x, const T2 &y) : first(x), second(y) {}
+    template<class U1, class U2>
+    pair(U1 &&x, U2 &&y) : first(x), second(y) {}
+    template<class U1, class U2>
+    pair(const pair<U1, U2> &other) : first(other.first), second(other.second) {}
+    template<class U1, class U2>
+    pair(pair<U1, U2> &&other) : first(other.first), second(other.second) {}
 
-    pair(const pair<T1,T2> &p){
-      first=p.first;
-      second=p.second;
-    }
-    pair(const T1 &t1,const T2 &t2){
-      this->first=t1;
-      this->second=t2;
-    }
+
+
     friend bool operator==(const pair<T1,T2> &p1,const pair<T1,T2> &p){
       return p1.first==p.first && p1.second==p.second;
     }
@@ -45,6 +47,7 @@ class pair{
         return p.second  < p1.second;
       }
     }
+
     pair<T1,T2> operator=(const pair<T1,T2> &p){
       if( *this != p){
         first=p.first;
@@ -53,7 +56,6 @@ class pair{
       return *this;
     }
   };
-
 }
 
 

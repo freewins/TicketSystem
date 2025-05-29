@@ -3,6 +3,8 @@
 //
 #ifndef BPLUSTREE_TCC
 #define BPLUSTREE_TCC
+#include <algorithm>
+
 #include "BPlusTree.hpp"
 
 template<class T, class Key, int degree, class Compare, class Compare_>
@@ -629,7 +631,6 @@ void BPlusTree<T, Key, degree, Compare, Compare_>::Merge(LeafNode *&leaf_node) {
       InternalNode *internal_node = new InternalNode();
       ReadInternalNode(internal_node, leaf_node->header.father_offset);
       //必须找左节点的位置
-      //TODO 先设为0 因为肯定寻找的是大于的位置
       int index = GetIndexOfOffset(left_node->values[0].first, left_node->values[0].second, left_node->header.offset,
                                    internal_node);
       //int index = Upper_Bound(left_node->keys_[left_node->header.count_nodes - 1], internal_node->keys_,internal_node->header.count_nodes);
@@ -713,7 +714,6 @@ void BPlusTree<T, Key, degree, Compare, Compare_>::Merge(LeafNode *&leaf_node) {
       } else {
         delete right_node;
       }
-      //TODO 执行对父节点的合并
       Merge(internal_node);
       delete internal_node;
     }
@@ -825,7 +825,9 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Insert(const Key &key, const 
     //这句话不要删，虽然Split里面有写入函数，但是进行Split 的概率很低
     WriteLeafNode(cur_leaf_node, cur_leaf_node->header.offset);
     Split(cur_leaf_node);
+    ++this->file_header_->node_count;
   }
+
   if (this->file_header_->root_offset != this->node_header_root_->offset) {
     this->ReadNodeHeader(this->node_header_root_, this->file_header_->root_offset);
   }
@@ -876,10 +878,10 @@ sjtu::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &
   }
   delete cur;
   delete cur_leaf_node;
-  if (find == false) {
-    //由于有对于0位置的读取，避免segment fault.
-    result.push_back(T());
+  if (result.size() > 0) {
+    result.reverse();
   }
+
   return result;
 }
 
@@ -902,9 +904,36 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Update(const Key &key, const 
     cur_leaf_node->values[pre_index].second = value;
     WriteLeafNode(cur_leaf_node, cur_leaf_node->header.offset);
   }
+  else {
+    if (pre_index == 0) {
+      while (!find && pre_index == 0 && cur_leaf_node->pre_node_offset != -1) {
+        ReadLeafNode(cur_leaf_node, cur_leaf_node->pre_node_offset);
+        pre_index = Lower_Bound(key, value, cur_leaf_node->values, cur_leaf_node->header.count_nodes, find);
+      }
+      if (find) {
+        cur_leaf_node->values[pre_index].second = value;
+        WriteLeafNode(cur_leaf_node, cur_leaf_node->header.offset);
+      }
+    }
+    if (pre_index == cur_leaf_node->header.count_nodes - 1) {
+      while (!find && pre_index == cur_internal_node->header.count_nodes - 1 && cur_leaf_node->next_node_offset != -1) {
+        ReadLeafNode(cur_leaf_node, cur_leaf_node->pre_node_offset);
+        pre_index = Lower_Bound(key, value, cur_leaf_node->values, cur_leaf_node->header.count_nodes, find);
+      }
+      if (find) {
+        cur_leaf_node->values[pre_index].second = value;
+        WriteLeafNode(cur_leaf_node, cur_leaf_node->header.offset);
+      }
+    }
+  }
   ReadNodeHeader(this->node_header_root_, this->file_header_->root_offset);
   delete cur_leaf_node;
   return find;
+}
+
+template<class T, class Key, int degree, class Compare, class Compare_>
+int BPlusTree<T, Key, degree, Compare, Compare_>::GetTotal() {
+  return this->file_header_->node_count;
 }
 
 

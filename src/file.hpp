@@ -33,13 +33,15 @@ namespace file {
     file.open(path, std::ios::out | std::ios::in | std::ios::binary);
     if (!file.is_open()) {
       file.open(path, std::ios::out | std::ios::binary);
+      file.close();
+      file.open(path, std::ios::out | std::ios::in | std::ios::binary);
     }
   }
 
   template<class T>
   void MyFile<T>::read(long long pos, T &data) {
     file.seekg(pos);
-    file.read(reinterpret_cast<char *>(&data), sizeof(data));
+    file.read(reinterpret_cast<char *>(&data), sizeof(T));
   }
 
   template<class T>

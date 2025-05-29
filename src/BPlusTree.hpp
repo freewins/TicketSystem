@@ -12,7 +12,7 @@
 #include <memory>
 #include "../src/pair.hpp"
 #include "../src/vector.hpp"
-//TODO 引入一个标准常数 避免出现溢出
+
 template<
   class T,
   class Key,
@@ -252,6 +252,8 @@ public:
   bool Remove(const Key & key,const T & value);
 
   bool Update(const Key & key,const T & value);
+
+  int GetTotal();
 
   sjtu::vector<T> Search(const Key & key,bool & find);
 };
