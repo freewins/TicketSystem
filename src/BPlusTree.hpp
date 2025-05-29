@@ -9,6 +9,7 @@
 #include <functional>
 #include <fstream>
 #include <string>
+#include <vector>
 #include <memory>
 #include "../src/pair.hpp"
 #include "../src/vector.hpp"
@@ -255,7 +256,7 @@ public:
 
   int GetTotal();
 
-  sjtu::vector<T> Search(const Key & key,bool & find);
+  std::vector<T> Search(const Key & key,bool & find);
 };
 
 #include "BPlusTree.tcc"

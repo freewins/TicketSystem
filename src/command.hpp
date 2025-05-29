@@ -4,6 +4,8 @@
 
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
+#define COMMAND_HPP
+#include<vector>
 #include "../src/vector.hpp"
 #include "../src/user.hpp"
 #include "../src/train.hpp"
@@ -15,7 +17,7 @@ namespace command {
 
     int timestamp;
     token::TokenScanner token_scanner;
-    sjtu::vector<std::string> tokens;
+    std::vector<std::string> tokens;
     user::User user;
     train::Train train;
   public:

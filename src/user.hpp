@@ -5,7 +5,8 @@
 #ifndef USER_HPP
 #define USER_HPP
 #include <filesystem>
-#include "map.hpp"
+#include <vector>
+#include "../src/map.hpp"
 #include "../src/BPlusTree.hpp"
 #include "../src/train.hpp"
 #include "../src/file.hpp"
@@ -204,7 +205,7 @@ namespace user {
       }
     }
     bool find = false;
-    sjtu::vector<Data> res_find = users.Search(user_name, find);
+    std::vector<Data> res_find = users.Search(user_name, find);
     if (find) {
       if (strcmp(res_find[0].password, password) == 0) {
         login_stack.insert({user_name, res_find[0].privilege});
@@ -236,7 +237,7 @@ namespace user {
       return false;
     }
     bool find = false;
-    sjtu::vector<Data> res_find = users.Search(user_name, find);
+    std::vector<Data> res_find = users.Search(user_name, find);
     if (find) {
       if (res_find[0].privilege < res->second || cur_user_name == user_name) {
         std::cout << username << " " << res_find[0].name << " " << res_find[0].mailAddr << " " << res_find[0].privilege
@@ -352,12 +353,12 @@ namespace user {
       return false;
     }
     bool find = false;
-    sjtu::vector<value_user_ticket> res = tickets_bpt.Search(user_name, find);
+    std::vector<value_user_ticket> res = tickets_bpt.Search(user_name, find);
     if (find) {
       if (res.size() < k) {
         return false;
       }
-      sjtu::vector<utils::transfer_union> change;
+      std::vector<utils::transfer_union> change;
       UserTicket new_ticket;
       //倒数第 k 个
       int order = res.size() - k ;
