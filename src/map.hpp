@@ -45,6 +45,7 @@ namespace sjtu {
         left_ = right_ = father_ = nullptr;
         color_ = Color::RED;
       }
+
       ~node() {
         delete data;
       }
@@ -89,97 +90,95 @@ namespace sjtu {
      */
     void CancelDoubleBlack(node * &cur) {
       if (cur == root_ || getColor(cur) == Color::RED) {
-        cur -> color_ = Color::BLACK;
+        cur->color_ = Color::BLACK;
         cur = nullptr;
       } else {
         return;
       }
     }
-    void SwitchFaterSon(node * father,node * son) {
+
+    void SwitchFaterSon(node *father, node *son) {
       //Son must be father right
-      node * f_left = father->left_;
-      father -> left_ = son -> left_;
-      if (father -> left_ != nullptr)
-        father -> left_ -> father_ = father;
-      father -> right_ = son -> right_;
-      if (father -> right_ != nullptr)
-        father -> right_ -> father_ = father;
-      Color tmp = son -> color_;
-      son ->color_ = father -> color_;
-      father -> color_ = tmp;
-      son -> father_ = father -> father_;
-      if (son -> father_ != nullptr) {
-        if (son -> father_ ->left_ == father) {
-          son -> father_ -> left_ = son;
+      node *f_left = father->left_;
+      father->left_ = son->left_;
+      if (father->left_ != nullptr)
+        father->left_->father_ = father;
+      father->right_ = son->right_;
+      if (father->right_ != nullptr)
+        father->right_->father_ = father;
+      Color tmp = son->color_;
+      son->color_ = father->color_;
+      father->color_ = tmp;
+      son->father_ = father->father_;
+      if (son->father_ != nullptr) {
+        if (son->father_->left_ == father) {
+          son->father_->left_ = son;
+        } else {
+          son->father_->right_ = son;
         }
-        else {
-          son -> father_ -> right_ = son;
-        }
-      }
-      else {
+      } else {
         root_ = son;
       }
-      father ->father_ = son;
-      son -> right_ = father;
-      son -> left_ = f_left;
-      if (son -> left_ != nullptr) {
-        son -> left_ -> father_ = son;
+      father->father_ = son;
+      son->right_ = father;
+      son->left_ = f_left;
+      if (son->left_ != nullptr) {
+        son->left_->father_ = son;
       }
     }
+
     /**
      * Swtich the node relation
      * @param cur_a next_node
      * @param cur_b delete node
      */
-    void SwitchNode(node * cur_a, node * cur_b) {
-      node  *tmp = new node();
-      tmp -> left_ = cur_a ->left_;
-      tmp -> right_ = cur_a ->right_;
-      tmp -> father_ = cur_a -> father_;
-      tmp -> color_ = cur_a -> color_;
+    void SwitchNode(node *cur_a, node *cur_b) {
+      node *tmp = new node();
+      tmp->left_ = cur_a->left_;
+      tmp->right_ = cur_a->right_;
+      tmp->father_ = cur_a->father_;
+      tmp->color_ = cur_a->color_;
 
-      cur_a -> father_ = cur_b -> father_;
-      if (cur_b -> father_ != nullptr) {
-        if (cur_b == cur_b -> father_ -> left_) {
-          cur_b -> father_ -> left_ = cur_a;
+      cur_a->father_ = cur_b->father_;
+      if (cur_b->father_ != nullptr) {
+        if (cur_b == cur_b->father_->left_) {
+          cur_b->father_->left_ = cur_a;
+        } else {
+          cur_b->father_->right_ = cur_a;
         }
-        else {
-          cur_b -> father_ -> right_ = cur_a;
-        }
-      }
-      else {//If father is nullptr ,is root
+      } else {
+        //If father is nullptr ,is root
         root_ = cur_a;
       }
-      cur_a -> left_ = cur_b -> left_;
-      if (cur_a -> left_ != nullptr) {
-        cur_a -> left_ -> father_ = cur_a;
+      cur_a->left_ = cur_b->left_;
+      if (cur_a->left_ != nullptr) {
+        cur_a->left_->father_ = cur_a;
       }
-      cur_a -> right_ = cur_b -> right_;
-      if (cur_a -> right_ != nullptr) {
-        cur_a -> right_ -> father_ = cur_a;
+      cur_a->right_ = cur_b->right_;
+      if (cur_a->right_ != nullptr) {
+        cur_a->right_->father_ = cur_a;
       }
-      cur_a -> color_ = cur_b -> color_;
+      cur_a->color_ = cur_b->color_;
 
-      cur_b -> father_ = tmp -> father_;
-      if (cur_b -> father_ != nullptr) {
-        if (cur_a == cur_b ->father_->left_) {
-          cur_b -> father_->left_ = cur_b;
-        }else {
-          cur_b -> father_->right_ = cur_b;
+      cur_b->father_ = tmp->father_;
+      if (cur_b->father_ != nullptr) {
+        if (cur_a == cur_b->father_->left_) {
+          cur_b->father_->left_ = cur_b;
+        } else {
+          cur_b->father_->right_ = cur_b;
         }
-      }
-      else {
+      } else {
         root_ = cur_b;
       }
-      cur_b ->right_ = tmp -> right_;
-      if (cur_b -> right_ != nullptr) {
-        cur_b ->right_ -> father_ = cur_b;
+      cur_b->right_ = tmp->right_;
+      if (cur_b->right_ != nullptr) {
+        cur_b->right_->father_ = cur_b;
       }
-      cur_b -> left_ = tmp -> left_;
-      if (cur_b -> left_ != nullptr) {
-        cur_b -> left_ -> father_ = cur_b;
+      cur_b->left_ = tmp->left_;
+      if (cur_b->left_ != nullptr) {
+        cur_b->left_->father_ = cur_b;
       }
-      cur_b -> color_ = tmp -> color_;
+      cur_b->color_ = tmp->color_;
       delete tmp;
     }
 
@@ -252,11 +251,10 @@ namespace sjtu {
         //pay attention
         //if delete and change directly,the iterator to this point will be invalid.
         //change relation,not the value
-        if (change)SwitchNode(p,cur);
-        else SwitchFaterSon(cur,p);
+        if (change)SwitchNode(p, cur);
+        else SwitchFaterSon(cur, p);
         Remove(cur);
-      }
-      else if (cur->left_ == nullptr && cur->right_ != nullptr) {
+      } else if (cur->left_ == nullptr && cur->right_ != nullptr) {
         node *child = cur->right_;
         child->father_ = cur->father_;
         //Abstract to a function
@@ -271,8 +269,7 @@ namespace sjtu {
         }
         delete cur;
         ChangeColor(child);
-      }
-      else if (cur->left_ != nullptr && cur->right_ == nullptr) {
+      } else if (cur->left_ != nullptr && cur->right_ == nullptr) {
         node *child = cur->left_;
         child->father_ = cur->father_;
         if (cur->father_) {
@@ -341,7 +338,7 @@ namespace sjtu {
                      *    Son          Sib
                      */
                     sibling->right_->color_ = sibling->father_->color_;
-                    sibling -> father_ -> color_ = Color::BLACK;
+                    sibling->father_->color_ = Color::BLACK;
                     RotateLeft(sibling);
                     RotateRight(sibling->father_->father_);
                     double_black = nullptr;
@@ -352,12 +349,11 @@ namespace sjtu {
                     //RR Type
                     sibling->right_->color_ = sibling->color_;
                     sibling->color_ = sibling->father_->color_;
-                    sibling ->father_->color_ = Color::BLACK;
+                    sibling->father_->color_ = Color::BLACK;
                     RotateLeft(sibling->father_);
                     double_black = nullptr;
                     break;
-                  }
-                  else {
+                  } else {
                     //RL
                     /**
                      *    G           G
@@ -367,7 +363,7 @@ namespace sjtu {
                      *     Son            Sib
                      */
                     sibling->left_->color_ = sibling->father_->color_;
-                    sibling ->father_->color_ = Color::BLACK;
+                    sibling->father_->color_ = Color::BLACK;
                     RotateRight(sibling);
                     RotateLeft(sibling->father_->father_);
                     double_black = nullptr;
@@ -378,11 +374,10 @@ namespace sjtu {
             }
             CancelDoubleBlack(double_black);
           }
-          if (cur == cur -> father_ -> right_) {
-            cur -> father_->right_ = nullptr;
-          }
-          else {
-            cur -> father_->left_ = nullptr;
+          if (cur == cur->father_->right_) {
+            cur->father_->right_ = nullptr;
+          } else {
+            cur->father_->left_ = nullptr;
           }
           delete cur;
         }
@@ -447,23 +442,21 @@ namespace sjtu {
     class iterator {
     private:
     public:
-
       const map *map_ptr;
-      node * ptr;
+      node *ptr;
 
       iterator() {
         ptr = nullptr;
         map_ptr = nullptr;
       }
 
-      iterator(node *ptr_, const map * map_ptr_) {
+      iterator(node *ptr_, const map *map_ptr_) {
         ptr = ptr_;
         map_ptr = map_ptr_;
       }
 
       iterator(const iterator &other) {
-
-        this -> map_ptr = other.map_ptr;
+        this->map_ptr = other.map_ptr;
         this->ptr = other.ptr;
       }
 
@@ -484,15 +477,14 @@ namespace sjtu {
             ptr = ptr->left_;
           }
         } else {
-          node * parent = ptr -> father_;
-          while (parent != nullptr && ptr == parent -> right_) {
+          node *parent = ptr->father_;
+          while (parent != nullptr && ptr == parent->right_) {
             ptr = parent;
-            parent = parent -> father_;
+            parent = parent->father_;
           }
           if (parent == nullptr) {
-            ptr = map_ptr -> end_node;
-          }
-          else {
+            ptr = map_ptr->end_node;
+          } else {
             ptr = parent;
           }
         }
@@ -501,14 +493,14 @@ namespace sjtu {
 
 
       iterator operator--(int) {
-        iterator tmp(ptr,map_ptr);
+        iterator tmp(ptr, map_ptr);
         --(*this);
         return tmp;
       }
 
 
       iterator &operator--() {
-        if (ptr == nullptr || map_ptr -> root_ == nullptr) {
+        if (ptr == nullptr || map_ptr->root_ == nullptr) {
           throw sjtu::invalid_iterator();
         }
         if (ptr == map_ptr->end_node) {
@@ -524,16 +516,15 @@ namespace sjtu {
           while (ptr->right_ != nullptr) {
             ptr = ptr->right_;
           }
-        }else {
-          node * parent = ptr -> father_;
-          while (parent != nullptr && ptr == parent -> left_) {
+        } else {
+          node *parent = ptr->father_;
+          while (parent != nullptr && ptr == parent->left_) {
             ptr = parent;
-            parent = parent -> father_;
+            parent = parent->father_;
           }
           if (parent == nullptr) {
             throw sjtu::invalid_iterator();
-          }
-          else {
+          } else {
             ptr = parent;
           }
         }
@@ -573,8 +564,7 @@ namespace sjtu {
       value_type *operator->() const noexcept {
         if (ptr != nullptr) {
           return ptr->data;
-        }
-        else return nullptr;
+        } else return nullptr;
       }
     };
 
@@ -585,9 +575,7 @@ namespace sjtu {
       // data members.
 
 
-
     public:
-
       const map *map_ptr;
       node *ptr;
 
@@ -595,19 +583,18 @@ namespace sjtu {
         ptr = nullptr;
       }
 
-      const_iterator(node *ptr_, const map * map_ptr_) {
+      const_iterator(node *ptr_, const map *map_ptr_) {
         ptr = ptr_;
         map_ptr = map_ptr_;
       }
 
       const_iterator(const const_iterator &other) {
-        this -> map_ptr = other.map_ptr;
+        this->map_ptr = other.map_ptr;
         this->ptr = other.ptr;
       }
 
       const_iterator(const iterator &other) {
-
-        this ->map_ptr = other.map_ptr;
+        this->map_ptr = other.map_ptr;
         this->ptr = other.ptr;
       }
 
@@ -615,7 +602,7 @@ namespace sjtu {
       // And other methods in iterator.
       // And other methods in iterator.
       const_iterator operator++(int) {
-        const_iterator tmp (ptr,map_ptr);
+        const_iterator tmp(ptr, map_ptr);
         ++(*this);
         return tmp;
       }
@@ -631,15 +618,14 @@ namespace sjtu {
             ptr = ptr->left_;
           }
         } else {
-          node * parent = ptr -> father_;
-          while (parent != nullptr && ptr == parent -> right_) {
+          node *parent = ptr->father_;
+          while (parent != nullptr && ptr == parent->right_) {
             ptr = parent;
-            parent = parent -> father_;
+            parent = parent->father_;
           }
           if (parent == nullptr) {
-            ptr = map_ptr -> end_node;
-          }
-          else {
+            ptr = map_ptr->end_node;
+          } else {
             ptr = parent;
           }
         }
@@ -650,7 +636,7 @@ namespace sjtu {
        *
        */
       const_iterator operator--(int) {
-        const_iterator tmp(ptr,map_ptr);
+        const_iterator tmp(ptr, map_ptr);
         --(*this);
         return tmp;
       }
@@ -659,7 +645,7 @@ namespace sjtu {
        *
        */
       const_iterator &operator--() {
-        if (ptr == nullptr || map_ptr -> root_ == nullptr) {
+        if (ptr == nullptr || map_ptr->root_ == nullptr) {
           throw sjtu::invalid_iterator();
         }
         if (ptr == map_ptr->end_node) {
@@ -675,16 +661,15 @@ namespace sjtu {
           while (ptr->right_ != nullptr) {
             ptr = ptr->right_;
           }
-        }else {
-          node * parent = ptr -> father_;
-          while (parent != nullptr && ptr == parent -> left_) {
+        } else {
+          node *parent = ptr->father_;
+          while (parent != nullptr && ptr == parent->left_) {
             ptr = parent;
-            parent = parent -> father_;
+            parent = parent->father_;
           }
           if (parent == nullptr) {
             throw sjtu::invalid_iterator();
-          }
-          else {
+          } else {
             ptr = parent;
           }
         }
@@ -724,8 +709,7 @@ namespace sjtu {
       const value_type *operator->() const noexcept {
         if (ptr != nullptr) {
           return ptr->data;
-        }
-        else return nullptr;
+        } else return nullptr;
       }
     };
 
@@ -828,24 +812,24 @@ namespace sjtu {
      */
     iterator begin() {
       if (size_ == 0) {
-        return iterator(end_node,this);
+        return iterator(end_node, this);
       }
-      node * cur = root_;
-      while (cur -> left_ != nullptr) {
-        cur = cur -> left_;
+      node *cur = root_;
+      while (cur->left_ != nullptr) {
+        cur = cur->left_;
       }
-      return iterator(cur,this);
+      return iterator(cur, this);
     }
 
     const_iterator cbegin() const {
       if (size_ == 0) {
-        return const_iterator(end_node,this);
+        return const_iterator(end_node, this);
       }
-      node * cur = root_;
-      while (cur -> left_ != nullptr) {
-        cur = cur -> left_;
+      node *cur = root_;
+      while (cur->left_ != nullptr) {
+        cur = cur->left_;
       }
-      return const_iterator(cur,this);
+      return const_iterator(cur, this);
     }
 
     /**
@@ -853,11 +837,11 @@ namespace sjtu {
      * in fact, it returns past-the-end.
      */
     iterator end() {
-      return iterator(end_node,this);
+      return iterator(end_node, this);
     }
 
     const_iterator cend() const {
-      return const_iterator(end_node,this);
+      return const_iterator(end_node, this);
     }
 
     /**
@@ -893,10 +877,10 @@ namespace sjtu {
     pair<iterator, bool> insert(const value_type &value) {
       if (root_ == nullptr) {
         root_ = new node(value.first, value.second);
-        root_ ->color_ = Color::BLACK;
-        root_ ->father_ = nullptr;
+        root_->color_ = Color::BLACK;
+        root_->father_ = nullptr;
         size_++;
-        return pair<iterator, bool>(iterator(root_,this), true);
+        return pair<iterator, bool>(iterator(root_, this), true);
       } else {
         node *parent = nullptr;
         node *cur = root_;
@@ -910,7 +894,7 @@ namespace sjtu {
             cur = cur->left_;
           } else {
             //The value is existing
-            return pair<iterator, bool>(iterator(cur,this), false);
+            return pair<iterator, bool>(iterator(cur, this), false);
           }
         }
 
@@ -990,7 +974,7 @@ namespace sjtu {
 
         root_->color_ = Color::BLACK;
         size_++;
-        return pair<iterator, bool>(iterator(new_node,this), true);
+        return pair<iterator, bool>(iterator(new_node, this), true);
       }
     }
 
@@ -1003,11 +987,11 @@ namespace sjtu {
       if (root_ == nullptr || pos == this->end()) {
         throw sjtu::index_out_of_bound();
       }
-      if (pos . map_ptr != this) {
+      if (pos.map_ptr != this) {
         throw sjtu::invalid_iterator();
       }
 
-      if (pos.ptr  == nullptr) {
+      if (pos.ptr == nullptr) {
         throw sjtu::index_out_of_bound();
       } else {
         this->Remove(pos.ptr);
@@ -1042,7 +1026,7 @@ namespace sjtu {
       if (resFind == nullptr) {
         return end();
       } else {
-        return iterator(resFind,this);
+        return iterator(resFind, this);
       }
     }
 
@@ -1051,7 +1035,7 @@ namespace sjtu {
       if (resFind == nullptr) {
         return cend();
       } else {
-        return const_iterator(resFind,this);
+        return const_iterator(resFind, this);
       }
     }
   };

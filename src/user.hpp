@@ -62,7 +62,6 @@ namespace user {
 
     //存储user的购票信息
     struct UserTicket {
-
       int status;
       char train_id[50];
       char startStation[50], endStation[50];
@@ -78,9 +77,10 @@ namespace user {
         train_id[0] = '\0';
       }
 
-      UserTicket(int status_,const char *trainId, const char *startStation_, const char *endStation_,
+      UserTicket(int status_, const char *trainId, const char *startStation_, const char *endStation_,
                  const utils::Time &leaving_Time_,
-                 const utils::Time &arriving_Time_, const utils::Time &date_, const int num_, const int price_,const int per_price_,int date_num_) {
+                 const utils::Time &arriving_Time_, const utils::Time &date_, const int num_, const int price_,
+                 const int per_price_, int date_num_) {
         status = status_;
         if (trainId != nullptr) {
           strcpy(train_id, trainId);
@@ -340,8 +340,8 @@ namespace user {
     int price = 0;
     int per_price = 0;
     int date_num;
-    int res = trains.BuyTicket(username, TrainID, startStation, endStation, date, num, queue, timestamp, leaving_time,
-                               arriving_time, price,per_price,date_num);
+    int res = trains.buy_ticket(username, TrainID, startStation, endStation, date, num, queue, timestamp, leaving_time,
+                                arriving_time, price, per_price, date_num);
     if (res < 0) {
       return -1;
     } else {
@@ -349,7 +349,8 @@ namespace user {
       new_ticket.pos = tickets_data.getPos();
       new_ticket.timestamp = timestamp;
       if (tickets_bpt.Insert(user_name, new_ticket)) {
-        UserTicket new_user_ticket(res,TrainID, startStation, endStation, leaving_time, arriving_time, date, num, price,per_price,date_num);
+        UserTicket new_user_ticket(res, TrainID, startStation, endStation, leaving_time, arriving_time, date, num,
+                                   price, per_price, date_num);
         tickets_data.write(new_user_ticket);
         tickets_bpt.Insert(user_name, new_ticket);
         if (res == 1) {
@@ -387,22 +388,19 @@ namespace user {
       sjtu::vector<utils::transfer_union> change;
       UserTicket new_ticket;
       //倒数第 k 个
-      int order = res.size() - k ;
+      int order = res.size() - k;
       tickets_data.read(res[order].pos, new_ticket);
       bool queue;
       if (new_ticket.status == 0) {
         queue = true;
       } else if (new_ticket.status == -1) {
         return false;
-      }
-      else {
+      } else {
         queue = false;
       }
-      if (trains.RefundTicket(username_, new_ticket.train_id, new_ticket.startStation, new_ticket.endStation,
-                              new_ticket.date_num, res[order].timestamp, new_ticket.num, queue, change)) {
+      if (trains.refund_ticket(username_, new_ticket.train_id, new_ticket.startStation, new_ticket.endStation,
+                               new_ticket.date_num, res[order].timestamp, new_ticket.num, queue, change)) {
         new_ticket.status = -1; //退票
-        // tickets_bpt.Remove(user_name,res[order]);
-        // tickets_bpt.Insert(user_name,res[order]);
         tickets_data.update(res[order].pos, new_ticket);
         if (!change.empty()) {
           for (int i = 0; i < change.size(); ++i) {
@@ -413,8 +411,6 @@ namespace user {
                 if (item[j].timestamp == change[i].timestamp) {
                   tickets_data.read(item[j].pos, tmp);
                   tmp.status = change[i].status;
-                  // tickets_bpt.Remove(change[i].user_name, item[j]);
-                  // tickets_bpt.Insert(change[i].user_name, item[j]);
                   tickets_data.update(item[j].pos, tmp);
                 }
               }
@@ -423,7 +419,6 @@ namespace user {
             }
           }
         }
-
         return true;
       } else {
         return false;
@@ -466,8 +461,7 @@ namespace user {
     std::cout << res.size() << "\n";
     if (find) {
       UserTicket ticket_data;
-      for (int i = res.size() - 1; i >= 0 ; --i) {
-
+      for (int i = res.size() - 1; i >= 0; --i) {
         tickets_data.read(res[i].pos, ticket_data);
         if (ticket_data.status == 0) {
           std::cout << "[pending] ";

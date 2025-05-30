@@ -11,9 +11,8 @@
 #include <stdexcept>
 #include <memory>
 #include "exceptions.hpp"
-namespace sjtu{
 
-
+namespace sjtu {
   /**
    * a data container like std::vector
    * store data in a successive memory and support random access.
@@ -298,8 +297,6 @@ namespace sjtu{
       bool operator!=(const const_iterator &rhs) const {
         return ptr != rhs.ptr;
       }
-
-
     };
 
     /**
@@ -642,14 +639,14 @@ namespace sjtu{
       return iterator(data + ind + 1);
     }
 
-    vector & reverse() {
-      T* start = this-> data;
-      T* end = this-> data + _size - 1;
+    vector &reverse() {
+      T *start = this->data;
+      T *end = this->data + _size - 1;
       while (start != end) {
         std::swap((*start), (*end));
         ++start;
         --end;
-        if(end < start){
+        if (end < start) {
           break;
         }
       }
