@@ -30,10 +30,14 @@ namespace user {
         return strcmp(username, other.username) != 0;
       }
 
-      UserName() = default;
+      UserName() {
+        username[0] = '\0';
+      }
 
       UserName(const char *username_) {
-        strcpy(username, username_);
+        if (username_ != nullptr) {
+          strcpy(username, username_);
+        }
       }
     };
 
@@ -68,15 +72,25 @@ namespace user {
       int price; //总票价
       int per_price; //单人价
       int date_num; // 实际对应的票
-      UserTicket() = default;
+      UserTicket() {
+        startStation[0] = '\0';
+        endStation[0] = '\0';
+        train_id[0] = '\0';
+      }
 
       UserTicket(int status_,const char *trainId, const char *startStation_, const char *endStation_,
                  const utils::Time &leaving_Time_,
                  const utils::Time &arriving_Time_, const utils::Time &date_, const int num_, const int price_,const int per_price_,int date_num_) {
         status = status_;
-        strcpy(train_id, trainId);
-        strcpy(startStation, startStation_);
-        strcpy(endStation, endStation_);
+        if (trainId != nullptr) {
+          strcpy(train_id, trainId);
+        }
+        if (startStation_ != nullptr) {
+          strcpy(startStation, startStation_);
+        }
+        if (endStation_ != nullptr) {
+          strcpy(endStation, endStation_);
+        }
         date = date_;
         leaving_Time = leaving_Time_;
         arriving_Time = arriving_Time_;
@@ -88,13 +102,19 @@ namespace user {
     };
 
     struct Data {
-      char password[30];
-      char name[20]; //Can be chinese
+      char password[35];
+      char name[25]; //Can be chinese
       char mailAddr[35];
       int privilege;
       int id; //唯一标识符
 
-      Data() = default;
+      Data() {
+        password[0] = '\0';
+        name[0] = '\0';
+        mailAddr[0] = '\0';
+        privilege = 0;
+        id = 0;
+      }
 
       Data(const Data &other) {
         strcpy(password, other.password);
@@ -105,9 +125,15 @@ namespace user {
       }
 
       Data(const char *pass, const char *name_, const char *mail, const int &privilege_, const int &id) {
-        strcpy(password, pass);
-        strcpy(name, name_);
-        strcpy(mailAddr, mail);
+        if (pass != nullptr) {
+          strcpy(password, pass);
+        }
+        if (name_ != nullptr) {
+          strcpy(name, name_);
+        }
+        if (mail != nullptr) {
+          strcpy(mailAddr, mail);
+        }
         privilege = privilege_;
       }
 
@@ -205,7 +231,7 @@ namespace user {
       }
     }
     bool find = false;
-    std::vector<Data> res_find = users.Search(user_name, find);
+    sjtu::vector<Data> res_find = users.Search(user_name, find);
     if (find) {
       if (strcmp(res_find[0].password, password) == 0) {
         login_stack.insert({user_name, res_find[0].privilege});
@@ -237,7 +263,7 @@ namespace user {
       return false;
     }
     bool find = false;
-    std::vector<Data> res_find = users.Search(user_name, find);
+    sjtu::vector<Data> res_find = users.Search(user_name, find);
     if (find) {
       if (res_find[0].privilege < res->second || cur_user_name == user_name) {
         std::cout << username << " " << res_find[0].name << " " << res_find[0].mailAddr << " " << res_find[0].privilege
@@ -353,12 +379,12 @@ namespace user {
       return false;
     }
     bool find = false;
-    std::vector<value_user_ticket> res = tickets_bpt.Search(user_name, find);
+    sjtu::vector<value_user_ticket> res = tickets_bpt.Search(user_name, find);
     if (find) {
       if (res.size() < k) {
         return false;
       }
-      std::vector<utils::transfer_union> change;
+      sjtu::vector<utils::transfer_union> change;
       UserTicket new_ticket;
       //倒数第 k 个
       int order = res.size() - k ;

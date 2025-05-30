@@ -64,10 +64,11 @@ private:
    */
   struct InternalNode {
     NodeHeader header; //节点头
-    Kp keys_[degree]; //键值 为degree - 1
-    long long children_offset[degree + 1]={}; // 孩子的偏移值 ，标记了孩子节点的位置
+    Kp keys_[degree] = {} ; //键值 为degree - 1
+    long long children_offset[degree + 1]= {}; // 孩子的偏移值 ，标记了孩子节点的位置
     InternalNode() {
       memset(keys_, 0, sizeof(keys_));
+      memset(children_offset, 0, sizeof(children_offset));
     }
   };
   /**
@@ -256,7 +257,7 @@ public:
 
   int GetTotal();
 
-  std::vector<T> Search(const Key & key,bool & find);
+  sjtu::vector<T> Search(const Key & key,bool & find);
 };
 
 #include "BPlusTree.tcc"

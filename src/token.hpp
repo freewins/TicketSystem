@@ -14,9 +14,9 @@ namespace token {
   public :
     TokenScanner();
 
-    explicit TokenScanner(std::string &&input);
+    explicit TokenScanner(std::string &input);
 
-    void reset_token(std::string &&input);
+    void reset_token(std::string & input);
 
     bool has_more_token();
 
@@ -28,7 +28,7 @@ namespace token {
     current = 0;
   }
 
-  inline TokenScanner::TokenScanner(std::string &&input) {
+  inline TokenScanner::TokenScanner(std::string & input) {
     current = 0;
     token = input;
     if (token[current] == '[') {
@@ -36,7 +36,7 @@ namespace token {
     }
   }
 
-  inline void TokenScanner::reset_token(std::string &&input) {
+  inline void TokenScanner::reset_token(std::string & input) {
     current = 0;
     token = input;
     if (token[current] == '[') {

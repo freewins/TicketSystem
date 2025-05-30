@@ -14,7 +14,7 @@
 namespace train {
   class Train {
   private:
-    const static int MAX_TRAINS = 26;
+    const static int MAX_TRAINS = 30;
     const static int MAX_DAYS = 100;
 
   private:
@@ -23,11 +23,13 @@ namespace train {
       char train_id[50];
 
       TrainId() {
-        strcpy(train_id, "");
+        train_id[0] = '\0';
       }
 
       TrainId(const char *train_id_) {
-        strcpy(train_id, train_id_);
+        if (train_id_ != nullptr) {
+          strcpy(train_id, train_id_);
+        }
       }
 
       TrainId(const std::string &train_id_) {
@@ -55,11 +57,15 @@ namespace train {
       }
 
       StationName(const char *train_name_) {
-        strcpy(train_name, train_name_);
+        if (train_name_ != nullptr) {
+          strcpy(train_name, train_name_);
+        }
       }
 
       StationName(const std::string &train_name_) {
-        strcpy(train_name, train_name_.c_str());
+        if (train_name_.size() > 0) {
+          strcpy(train_name, train_name_.c_str());
+        }
       }
 
       StationName(const StationName &t) {
@@ -123,14 +129,14 @@ namespace train {
 
     struct TrainInfoMost {
       int station_num = 0;
-      StationName station_names[MAX_TRAINS];
+      StationName station_names[MAX_TRAINS] = {};
 
-      int prices[MAX_TRAINS]{0};
-      int arriving_time[MAX_TRAINS]{0}; // To store the time 前缀和
-      int leaving_time[MAX_TRAINS]; //由于具体的date 是不确定的,所以这时候要存储times的大小
+      int prices[MAX_TRAINS] = {0};
+      int arriving_time[MAX_TRAINS] = {0}; // To store the time 前缀和
+      int leaving_time[MAX_TRAINS] = {0}; //由于具体的date 是不确定的,所以这时候要存储times的大小
       int max_days = 0;
       //注意此处的值 left_seats[i][j]代表日期标号为 i 时,且当前火车编号为j,从j出发到j + 1站的座位数，0-based
-      int left_seats[MAX_DAYS][MAX_TRAINS]{0};
+      int left_seats[MAX_DAYS][MAX_TRAINS] = {0};
 
       utils::Time start_time;
       char type;
@@ -219,7 +225,13 @@ namespace train {
       int time_stamp;
       int start_pos, end_pos;
 
-      queue_value() = default;
+      queue_value() {
+        username[0] = '\0';
+        reversed_seats_num = 0;
+        time_stamp = 0;
+        start_pos = 0;
+        end_pos = 0;
+      }
 
       queue_value(const char * user_name_,const int &reversed_seats_num_, const int &time_stamp_, const int &start_pos_, const int &end_pos_) {
         strcpy(username, user_name_);
@@ -339,7 +351,7 @@ namespace train {
     //-----User-----
     //用于QueryTicket 和 QueryTranfer 中的相同的query，返回从一个地方到另一个地方所有的train
 
-    std::vector<TrainId> QueryBasic(StationName fStation, StationName tStation, bool &find);
+    sjtu::vector<TrainId> QueryBasic(StationName fStation, StationName tStation, bool &find);
 
     /**
      *
@@ -385,7 +397,7 @@ namespace train {
      */
     bool RefundTicket(const char *username_, const char *trainID_, const char *startStation_, const char *endStation_,
                       int timenum, int timestamp, int num, bool queue_,
-                      std::vector<utils::transfer_union> &change);
+                      sjtu::vector<utils::transfer_union> &change);
 
     bool clean();
   };
@@ -446,8 +458,8 @@ namespace train {
     train_info_basic.endding_time = train_info_basic.end_sale_time;
     train_info_basic.endding_time = train_info_basic.endding_time.add_min(train_info_most.arriving_time[stationNum_ - 1]);
     //处理车站
-    std::vector<std::string> stations_vector = utils::split(stations_, '|');
-    for (int i = 0; i < stations_vector.size(); i++) {
+    sjtu::vector<std::string> stations_vector = utils::split(stations_, '|');
+    for (int i = 0; i < train_info_most.station_num ; i++) {
       train_info_most.station_names[i] = stations_vector[i];
     }
     //车票价格
@@ -469,6 +481,8 @@ namespace train {
     for (int i = 0; i < stations_.size(); ++i) {
       stations.Insert(train_info_most.station_names[i], trainID);
     }
+    delete [] travel;
+    delete [] stopover;
     if (trains_basic.Insert(trainID, train_info_basic)) {
       return true;
     } else {
@@ -514,10 +528,10 @@ namespace train {
     return false;
   }
 
-  inline std::vector<Train::TrainId> Train::QueryBasic(StationName fStation, StationName tStation, bool &find) {
-    std::vector<Train::TrainId> res;
-    std::vector<Train::TrainId> fTrains;
-    std::vector<Train::TrainId> tTrains;
+  inline sjtu::vector<Train::TrainId> Train::QueryBasic(StationName fStation, StationName tStation, bool &find) {
+    sjtu::vector<Train::TrainId> res;
+    sjtu::vector<Train::TrainId> fTrains;
+    sjtu::vector<Train::TrainId> tTrains;
 
     find = false;
     fTrains = stations.Search(fStation, find);
@@ -582,9 +596,9 @@ namespace train {
     StationName fStation(fromStation);
     StationName tStation(toStation);
     bool find = false;
-    std::vector<Train::TrainId> path;//
-    std::vector<int> pos_traind_id; //映射  pos_vecotr[k] -> item -> trainID -> path[pos_train_id[k]]
-    std::vector<TrainInfoBasic> basic_data;
+    sjtu::vector<Train::TrainId> path;//
+    sjtu::vector<int> pos_traind_id; //映射  pos_vecotr[k] -> item -> trainID -> path[pos_train_id[k]]
+    sjtu::vector<TrainInfoBasic> basic_data;
     path = this->QueryBasic(fStation, tStation, find);
     if (find) {
       for (int i = 0; i < path.size(); i++) {
@@ -599,7 +613,7 @@ namespace train {
       }
       TrainInfoMost train_info_most;
 
-      std::vector<Info> infos;
+      sjtu::vector<Info> infos;
       for (int i = 0; i < basic_data.size(); i++) {
         trains_most.read(basic_data[i].pos, train_info_most);
         int start_pos, end_pos;
@@ -651,11 +665,11 @@ namespace train {
     //Step 2: 对于这些Station，再求从这些Station 能否到达to Station 的trainID
     //Step 3: 如果可以到达，注意到达的时间，首先看leaving_time 如果leaving time并不满足，就增加一天 这个也要注意发行时间
     bool find = false;
-    std::vector<TrainId> trainIDs = stations.Search(fStation, find);
-    std::vector<int> hash; //建立一个从pos -> train ID 的hash
-    std::vector<utils::Time> basic_sale_date;
-    std::vector<utils::Time> end_sale_date;
-    std::vector<long long> pos_vector;
+    sjtu::vector<TrainId> trainIDs = stations.Search(fStation, find);
+    sjtu::vector<int> hash; //建立一个从pos -> train ID 的hash
+    sjtu::vector<utils::Time> basic_sale_date;
+    sjtu::vector<utils::Time> end_sale_date;
+    sjtu::vector<long long> pos_vector;
     if (find) {
       for (int i = 0; i < trainIDs.size(); i++) {
         bool find_ = false;
@@ -674,8 +688,8 @@ namespace train {
       }
       if (!pos_vector.empty()) {
         TrainInfoMost train_info_most;
-        std::vector<StationName> midStations;
-        std::vector<Info> one_infos;
+        sjtu::vector<StationName> midStations;
+        sjtu::vector<Info> one_infos;
         bool add_ = false;
         int fpos = 0;
         for (int i = 0; i < pos_vector.size(); i++) {
@@ -721,7 +735,7 @@ namespace train {
         }
         //step 3:
         if (!midStations.empty()) {
-          std::vector<TrainId> to_train_ids; //存储第二趟车的trainID
+          sjtu::vector<TrainId> to_train_ids; //存储第二趟车的trainID
           Info info2,info_tmp;
           int first_chosen = 0; //标记符合transfer再infos中的位置
           StationName mid; //中转站
@@ -879,7 +893,7 @@ namespace train {
 
   inline bool Train::RefundTicket(const char *username_, const char *trainID_, const char *startStation_,
                                   const char *endStation_, int timenum, int timestamp, int num,
-                                  bool queue_, std::vector<utils::transfer_union> &change) {
+                                  bool queue_, sjtu::vector<utils::transfer_union> &change) {
     TrainId trainID(trainID_);
     StationName start_station(startStation_);
     StationName end_station(endStation_);
@@ -908,7 +922,7 @@ namespace train {
         }
 
         queue_key key_q(trainID, timenum);
-        std::vector<queue_value> res = queues.Search(key_q, find);
+        sjtu::vector<queue_value> res = queues.Search(key_q, find);
         if (find) {
           //确定有队列的等待
           for (int s = 0; s < res.size(); s++) {

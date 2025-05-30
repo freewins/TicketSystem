@@ -196,8 +196,8 @@ namespace utils {
     return res;
   }
 
-  inline std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
+  inline sjtu::vector<std::string> split(const std::string &s, char delim) {
+    sjtu::vector<std::string> elems = {};
     int pre_pos = 0;
     int end_pos = 0;
     while (end_pos < s.size()) {
@@ -212,7 +212,7 @@ namespace utils {
   }
 
   inline void split_int(int *des, const std::string &s, char delim) {
-    std::vector<std::string> elems = split(s, delim);
+    sjtu::vector<std::string> elems = split(s, delim);
     for (int i = 0; i < elems.size(); i++) {
       des[i] = (string_to_int(elems[i]));
     }

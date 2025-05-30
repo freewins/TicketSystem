@@ -771,7 +771,7 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Remove(const Key &key, const 
   }
   LeafNode *cur_leaf_node = new LeafNode();
   ReadLeafNode(cur_leaf_node, cur_internal_node->header.offset);
-  delete cur_internal_node;
+
 
   bool found = false;
   int index = GetIndexOfValue(key, value, cur_leaf_node, found);
@@ -788,6 +788,7 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Remove(const Key &key, const 
   }
   delete cur;
   delete cur_leaf_node;
+  delete cur_internal_node;
   return found;
 }
 
@@ -810,7 +811,7 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Insert(const Key &key, const 
   }
   LeafNode *cur_leaf_node = new LeafNode();
   this->ReadLeafNode(cur_leaf_node, cur_internal_node->header.offset);
-  delete cur_internal_node;
+
   //到达叶节点
 
   bool found = false;
@@ -831,13 +832,14 @@ bool BPlusTree<T, Key, degree, Compare, Compare_>::Insert(const Key &key, const 
   if (this->file_header_->root_offset != this->node_header_root_->offset) {
     this->ReadNodeHeader(this->node_header_root_, this->file_header_->root_offset);
   }
+  delete cur_internal_node;
   delete cur_leaf_node;
   delete cur;
   return notDouble;
 }
 
 template<class T, class Key, int degree, class Compare, class Compare_>
-std::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &key, bool &find) {
+sjtu::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &key, bool &find) {
   NodeHeader *cur = new NodeHeader(*(this->node_header_root_));
   //NodeHeader *cur = this->node_header_root_;
   InternalNode *cur_internal_node = new InternalNode();
@@ -849,12 +851,11 @@ std::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &k
   }
   LeafNode *cur_leaf_node = new LeafNode();
   this->ReadLeafNode(cur_leaf_node, cur_internal_node->header.offset);
-  delete cur_internal_node;
 
 
   int index = Upper_Bound_Key(key, cur_leaf_node->values, cur_leaf_node->header.count_nodes) - 1;
   int pre_index = Lower_Bound_Key(key, cur_leaf_node->values, cur_leaf_node->header.count_nodes, find);
-  std::vector<T> result;
+  sjtu::vector<T> result;
   bool continue_find = find;
   int size_ = 0;
   while (continue_find || pre_index == 0) {
@@ -878,10 +879,10 @@ std::vector<T> BPlusTree<T, Key, degree, Compare, Compare_>::Search(const Key &k
   }
   delete cur;
   delete cur_leaf_node;
+  delete cur_internal_node;
   if (result.size() > 0) {
-    std::reverse(result.begin(), result.end());
+    result.reverse();
   }
-
   return result;
 }
 

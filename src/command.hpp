@@ -17,7 +17,7 @@ namespace command {
 
     int timestamp;
     token::TokenScanner token_scanner;
-    std::vector<std::string> tokens;
+    sjtu::vector<std::string> tokens;
     user::User user;
     train::Train train;
   public:
@@ -25,7 +25,7 @@ namespace command {
 
     ~Command();
 
-    void execute(std::string &&command, bool & exit_flag);
+    void execute(std::string  & command, bool & exit_flag);
 
   };
 
@@ -38,8 +38,8 @@ namespace command {
   }
 
   //false exit  else continue
-  inline void Command::execute(std::string &&command, bool  & exit_flag) {
-    token_scanner.reset_token(std::move(command));
+  inline void Command::execute(std::string  & command, bool  & exit_flag) {
+    token_scanner.reset_token(command);
     tokens.clear();
     int pos = 0;
     while (token_scanner.has_more_token()) {
@@ -47,13 +47,14 @@ namespace command {
     }
     pos++;
     timestamp = utils::string_to_int(tokens[0]);
-    std::cout << "[" << timestamp << "]" <<" ";
-     if (tokens[1] == "add_user"&& tokens.size() == 14 ) {
-       std::string params[6];
-       // 0-> cur_username 1->username 2-> password 3-> name 4-> mailAddr 5-> privilege
+    try {
+      std::cout << "[" << timestamp << "]" <<" ";
+      if (tokens[1] == "add_user"&& tokens.size() == 14 ) {
+        std::string params[6]{};
+        // 0-> cur_username 1->username 2-> password 3-> name 4-> mailAddr 5-> privilege
         for (int i = 2;i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-c") {
-           params[0] = tokens[i+1];
+            params[0] = tokens[i+1];
             continue;
           }
           else if (tokens[i] == "-u") {
@@ -81,17 +82,17 @@ namespace command {
             return ;
           }
         }
-       bool res = user.add_user(params[0].c_str(),params[1].c_str(),params[2].c_str(),params[3].c_str(),params[4].c_str(),utils::string_to_int(params[5]));
-       if (res) {
-         std::cout << "0\n";
-       }
-       else {
-         std::cout<<"-1\n";
-       }
-     }
-     else if (tokens[1] == "login" && tokens.size() == 6 ) {
-        std::string params[6];
-       // 0 -> username 1 -> password
+        bool res = user.add_user(params[0].c_str(),params[1].c_str(),params[2].c_str(),params[3].c_str(),params[4].c_str(),utils::string_to_int(params[5]));
+        if (res) {
+          std::cout << "0\n";
+        }
+        else {
+          std::cout<<"-1\n";
+        }
+      }
+      else if (tokens[1] == "login" && tokens.size() == 6 ) {
+        std::string params[6]{};
+        // 0 -> username 1 -> password
         for (int i = 2; i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-u") {
             params[0] = tokens[i+1];
@@ -102,20 +103,20 @@ namespace command {
             continue;
           }
           else {
-           std::cout << "-1\n";
+            std::cout << "-1\n";
             return ;
           }
         }
-       bool res = user.login(params[0].c_str(),params[1].c_str());
-       if (res) {
-         std::cout << "0\n";
-       }
-       else {
-         std::cout << "-1\n";
-       }
-     }
-     else if (tokens[1] == "logout" && tokens.size() == 4 ) {
-        std::string params[4];
+        bool res = user.login(params[0].c_str(),params[1].c_str());
+        if (res) {
+          std::cout << "0\n";
+        }
+        else {
+          std::cout << "-1\n";
+        }
+      }
+      else if (tokens[1] == "logout" && tokens.size() == 4 ) {
+        std::string params[4]{};
         for (int i = 2; i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-u") {
             params[0] = tokens[i+1];
@@ -125,16 +126,16 @@ namespace command {
             return ;
           }
         }
-       bool res = user.logout(params[0].c_str());
-       if (res) {
-         std::cout << "0\n";
-       }
-       else {
-         std::cout << "-1\n";
-       }
+        bool res = user.logout(params[0].c_str());
+        if (res) {
+          std::cout << "0\n";
+        }
+        else {
+          std::cout << "-1\n";
+        }
       }
-     else if (tokens[1] == "query_profile" && tokens.size() == 6 ) {
-        std::string params[6];
+      else if (tokens[1] == "query_profile" && tokens.size() == 6 ) {
+        std::string params[6]{};
         // 0-> cur_username u -> usrname
         for (int i = 2; i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-c") {
@@ -148,12 +149,12 @@ namespace command {
             return ;
           }
         }
-       bool res = user.query_profile(params[0].c_str(),params[1].c_str());
-       if (!res) {
-         std::cout << "-1\n";
-       }
+        bool res = user.query_profile(params[0].c_str(),params[1].c_str());
+        if (!res) {
+          std::cout << "-1\n";
+        }
       }
-     else if (tokens[1] == "modify_profile") {
+      else if (tokens[1] == "modify_profile") {
         std::string params[6]{};
 
         bool exists[6]{false};
@@ -194,25 +195,24 @@ namespace command {
             return ;
           }
         }
-       char * input[6];
-       if (exists[0] &&exists[1]) {
-         int p = -1;
-         if (exists[5]) {
-           p = utils::string_to_int(params[5]);
-         }
-         bool res = user.modify_profile(params[0].c_str(),params[1].c_str(),params[2].c_str(),params[3].c_str(),params[4].c_str(),p);
-         if (!res) {
-           std::cout << "-1\n";
-           return;
-         }
-       }
-       else {
-         std::cout << "-1\n";
-       }
+        if (exists[0] &&exists[1]) {
+          int p = -1;
+          if (exists[5]) {
+            p = utils::string_to_int(params[5]);
+          }
+          bool res = user.modify_profile(params[0].c_str(),params[1].c_str(),params[2].c_str(),params[3].c_str(),params[4].c_str(),p);
+          if (!res) {
+            std::cout << "-1\n";
+            return;
+          }
+        }
+        else {
+          std::cout << "-1\n";
+        }
 
       }
-     else if (tokens[1] == "add_train" && tokens.size() == 22) {
-        std::string params[10];
+      else if (tokens[1] == "add_train" && tokens.size() == 22) {
+        std::string params[10] = {};
         //0 -> trainID 1 -> stationNum 2 -> seatNum 3-> stations 4 - > prices
         //5-> startTIme 6- > travelTimes 7 -> stopoverTimes
         //8 -> saleDate 9 -> type
@@ -263,18 +263,18 @@ namespace command {
           }
         }
 
-       int stationNnum = utils::string_to_int(params[1]);
-       int seatNum = utils::string_to_int(params[2]);
-       bool res = train.AddTrain(params[0],stationNnum,seatNum,params[3],params[4],params[5],params[6],params[7],params[8],params[9][0]);
+        int stationNnum = utils::string_to_int(params[1]);
+        int seatNum = utils::string_to_int(params[2]);
+        bool res = train.AddTrain(params[0],stationNnum,seatNum,params[3],params[4],params[5],params[6],params[7],params[8],params[9][0]);
         if (res) {
           std::cout << "0\n";
         }
-       else {
-         std::cout << "-1\n";
-       }
-     }
-     else if (tokens[1] == "query_ticket" && (tokens.size() == 8 || tokens.size() == 10)) {
-        std::string params[4];
+        else {
+          std::cout << "-1\n";
+        }
+      }
+      else if (tokens[1] == "query_ticket" && (tokens.size() == 8 || tokens.size() == 10)) {
+        std::string params[4] = {};
         // 0 -> strtStation 1 -> toStation 2 -> date (3 -> p sort order)
         bool exists[4]{false};
         for (int i = 2; i< tokens.size(); i+=2) {
@@ -312,10 +312,10 @@ namespace command {
             return ;
           }
         }
-       train.QueryTicket(params[0].c_str(),params[1].c_str(),utils::string_to_time(params[2],2),mode);
+        train.QueryTicket(params[0].c_str(),params[1].c_str(),utils::string_to_time(params[2],2),mode);
       }
-     else if (tokens[1] == "query_transfer" &&  (tokens.size() == 8 || tokens.size() == 10)) {
-        std::string params[4];
+      else if (tokens[1] == "query_transfer" &&  (tokens.size() == 8 || tokens.size() == 10)) {
+        std::string params[4] = {};
         // 0 -> strtStation 1 -> toStation 2 -> date (3 -> p sort order)
         bool exists[4]{false};
         for (int i = 2; i< tokens.size(); i+=2) {
@@ -340,23 +340,23 @@ namespace command {
             return;
           }
         }
-       int mode = 0;
-       if (exists[3]) {
-         if (params[3] == "cost") {
-           mode = 0;
-         }
-         else if (params[3] == "time") {
-           mode = 1;
-         }
-         else {
-           std::cout << "0\n";
-           return ;
-         }
-       }
-       train.QueryTransfer(params[0].c_str(),params[1].c_str(),utils::string_to_time(params[2],2),mode);
+        int mode = 0;
+        if (exists[3]) {
+          if (params[3] == "cost") {
+            mode = 0;
+          }
+          else if (params[3] == "time") {
+            mode = 1;
+          }
+          else {
+            std::cout << "0\n";
+            return ;
+          }
+        }
+        train.QueryTransfer(params[0].c_str(),params[1].c_str(),utils::string_to_time(params[2],2),mode);
       }
-     else if (tokens[1] == "buy_ticket" && (tokens.size() ==  14 || tokens.size() == 16)) {
-        std::string params[8];
+      else if (tokens[1] == "buy_ticket" && (tokens.size() ==  14 || tokens.size() == 16)) {
+        std::string params[8] = {};
         //0 -> username 1 -> trrainID -2 date -3 fraomSation -4 toStation -5 num -6 queue
         bool exits[8]{false};
         for (int i = 2; i< tokens.size(); i+=2) {
@@ -393,33 +393,33 @@ namespace command {
             return ;
           }
         }
-          bool queue = false;
-          if (exits[6] ) {
-            if (params[6] == "true") {
-              queue = true;
-            }
-            else if (params[6] == "false") {
-               queue = false;
-            }
-            else {
-              std::cout << "-1\n";
-              return ;
-            }
+        bool queue = false;
+        if (exits[6] ) {
+          if (params[6] == "true") {
+            queue = true;
           }
-          int num = utils::string_to_int(params[5]);
-          int res = user.buy_ticket(train,params[0].c_str(),params[1].c_str(),params[3].c_str(),params[4].c_str(),num,timestamp,utils::string_to_time(params[2],2),queue);
-          if (res == 0) {
-            std::cout <<"queue\n";
-          }
-          else if (res > 0 ){
-            std::cout << res <<"\n";
+          else if (params[6] == "false") {
+            queue = false;
           }
           else {
             std::cout << "-1\n";
+            return ;
           }
+        }
+        int num = utils::string_to_int(params[5]);
+        int res = user.buy_ticket(train,params[0].c_str(),params[1].c_str(),params[3].c_str(),params[4].c_str(),num,timestamp,utils::string_to_time(params[2],2),queue);
+        if (res == 0) {
+          std::cout <<"queue\n";
+        }
+        else if (res > 0 ){
+          std::cout << res <<"\n";
+        }
+        else {
+          std::cout << "-1\n";
+        }
       }
-     else if (tokens[1] == "refund_ticket" && (tokens.size() == 4 || tokens.size() == 6)) {
-        std::string params[2];
+      else if (tokens[1] == "refund_ticket" && (tokens.size() == 4 || tokens.size() == 6)) {
+        std::string params[2] = {};
         bool exits[2];
         for (int i = 2; i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-u") {
@@ -453,8 +453,9 @@ namespace command {
           return ;
         }
       }
-     else if (tokens[1] == "query_order" && tokens.size() == 4) {
-        std::string user_name;
+      else if (tokens[1] == "query_order" && tokens.size() == 4) {
+        std::string user_name ;
+        user_name[0] ='\0';
         if (tokens[2] == "-u") {
           user_name = tokens[3];
         }
@@ -462,15 +463,15 @@ namespace command {
           std::cout << "-1\n";
           return ;
         }
-       bool res = user.query_order(user_name.c_str());
-       if (!res) {
-         std::cout << "-1\n";
-         return ;
-       }
+        bool res = user.query_order(user_name.c_str());
+        if (!res) {
+          std::cout << "-1\n";
+          return ;
+        }
 
       }
-    else if (tokens[1] == "query_train" && tokens.size() == 6) {
-        std::string params[2];
+      else if (tokens[1] == "query_train" && tokens.size() == 6) {
+        std::string params[2] {};
         // 0 -> trainID 1 -> date
         for (int i = 2; i < tokens.size(); i +=2 ) {
           if (tokens[i] == "-i") {
@@ -483,13 +484,14 @@ namespace command {
             std::cout <<"-1\n";
           }
         }
-      bool res = train.QueryTrain(params[0].c_str(),utils::string_to_time(params[1],2));
-      if (!res) {
-        std::cout <<"-1\n";
+        bool res = train.QueryTrain(params[0].c_str(),utils::string_to_time(params[1],2));
+        if (!res) {
+          std::cout <<"-1\n";
+        }
       }
-    }
       else if (tokens[1] == "release_train") {
         std::string trainID;
+        trainID[0] ='\0';
         if (tokens[2] == "-i") {
           trainID = tokens[3];
         }
@@ -506,6 +508,7 @@ namespace command {
       }
       else if (tokens[1] == "delete_train" && tokens.size() == 4) {
         std::string trainID;
+        trainID[0] ='\0';
         if (tokens[2] == "-i") {
           trainID = tokens[3];
         }
@@ -530,6 +533,9 @@ namespace command {
         bool train_clear = train.clean();
         return ;
       }
+    }catch (...) {
+      std::cout << timestamp <<"\n";
+    }
     return;
   }
 
